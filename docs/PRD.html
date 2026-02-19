@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MYTE PRD — Product Requirements Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #1a1a26;
+    --bg-code: #0d0d16;
+    --border: #1e1e2e;
+    --border-accent: #2a2a3e;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --accent: #6c5ce7;
+    --accent-light: #a29bfe;
+    --green: #00cec9;
+    --green-dim: #00b8b422;
+    --red: #ff6b6b;
+    --red-dim: #ff6b6b22;
+    --orange: #fdcb6e;
+    --orange-dim: #fdcb6e22;
+    --blue: #74b9ff;
+    --blue-dim: #74b9ff22;
+    --pink: #fd79a8;
+    --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    --gradient-2: linear-gradient(135deg, #00cec9, #55efc4);
+    --gradient-3: linear-gradient(135deg, #fd79a8, #fdcb6e);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg); }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,10,15,0.9); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 0 2rem;
+  }
+  .nav-inner {
+    max-width: 1200px; margin: 0 auto; display: flex;
+    align-items: center; height: 56px; gap: 2rem; overflow-x: auto;
+  }
+  .nav-logo {
+    font-weight: 800; font-size: 1rem;
+    background: var(--gradient-1); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; white-space: nowrap; flex-shrink: 0;
+  }
+  .nav-links { display: flex; gap: 0.15rem; list-style: none; }
+  .nav-links a {
+    color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+    font-weight: 500; padding: 0.35rem 0.6rem; border-radius: 6px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-links a:hover { color: var(--text-bright); background: var(--bg-card-hover); }
+
+  .hero {
+    min-height: 80vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    padding: 6rem 2rem 4rem; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(108,92,231,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(0,206,201,0.06) 0%, transparent 60%);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--bg-card); border: 1px solid var(--border-accent);
+    padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.85rem;
+    color: var(--accent-light); margin-bottom: 2rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff 0%, #a29bfe 50%, #00cec9 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-sub { font-size: 1.15rem; color: var(--text-dim); max-width: 650px; margin: 0 auto 2.5rem; line-height: 1.8; }
+
+  .section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;
+  }
+  .section h2 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800;
+    color: var(--text-bright); margin-bottom: 0.75rem; line-height: 1.2;
+  }
+  .section-lead { font-size: 1.05rem; color: var(--text-dim); margin-bottom: 2.5rem; max-width: 700px; line-height: 1.8; }
+
+  hr.div { border: none; height: 1px; background: var(--border); margin: 0; }
+
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.75rem; margin-bottom: 1.25rem;
+  }
+  .card:hover { border-color: var(--border-accent); }
+  .card h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.75rem; }
+  .card h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-bright); margin: 1.25rem 0 0.5rem; }
+  .card p, .card li { color: var(--text); line-height: 1.8; font-size: 0.95rem; }
+  .card ul, .card ol { padding-left: 1.25rem; margin: 0.5rem 0; }
+  .card li { margin-bottom: 0.4rem; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+
+  .mini { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+  .mini h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.4rem; }
+  .mini p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+  .mini.accent { border-left: 3px solid var(--accent); }
+  .mini.green { border-left: 3px solid var(--green); }
+  .mini.red { border-left: 3px solid var(--red); }
+  .mini.orange { border-left: 3px solid var(--orange); }
+  .mini.blue { border-left: 3px solid var(--blue); }
+  .mini.pink { border-left: 3px solid var(--pink); }
+
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { background: var(--bg-card); color: var(--text-bright); font-weight: 600; text-align: left; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+
+  .tag { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+  .tag.green { background: var(--green-dim); color: var(--green); }
+  .tag.red { background: var(--red-dim); color: var(--red); }
+  .tag.orange { background: var(--orange-dim); color: var(--orange); }
+  .tag.blue { background: var(--blue-dim); color: var(--blue); }
+
+  .callout { background: var(--bg-card); border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+  .callout.warn { border-left-color: var(--orange); }
+  .callout.danger { border-left-color: var(--red); }
+  .callout.success { border-left-color: var(--green); }
+  .callout-title { font-weight: 700; color: var(--text-bright); margin-bottom: 0.4rem; font-size: 0.9rem; }
+  .callout p { font-size: 0.88rem; color: var(--text); line-height: 1.7; }
+
+  .code-block {
+    background: var(--bg-code); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem; margin: 1.25rem 0; overflow-x: auto; position: relative;
+  }
+  .code-block .lang { position: absolute; top: 0.6rem; right: 0.8rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .code-block pre { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.65; color: var(--text); }
+  .comment { color: #5c6370; } .keyword { color: var(--accent-light); }
+  .string { color: var(--green); } .func { color: var(--blue); } .num { color: var(--orange); }
+
+  .stat-row { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 1.5rem 0; }
+  .stat-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; flex: 1; min-width: 130px; text-align: center; }
+  .stat-value { font-size: 1.8rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+  .stat-value.purple { color: var(--accent-light); }
+  .stat-value.teal { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.orange { color: var(--orange); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-label { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+  .toc { list-style: none; padding: 0; }
+  .toc li { margin-bottom: 0.5rem; }
+  .toc a { color: var(--accent-light); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
+  .toc a:hover { color: var(--text-bright); }
+  .toc .num { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.8rem; margin-right: 0.75rem; }
+
+  .footer { text-align: center; padding: 4rem 2rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 0.8rem; }
+
+  [id] { scroll-margin-top: 72px; }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .section { padding: 3rem 1.25rem; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">MYTE PRD</div>
+    <ul class="nav-links">
+      <li><a href="#vision">Видение</a></li>
+      <li><a href="#team">Команда</a></li>
+      <li><a href="#gameplay">Геймплей</a></li>
+      <li><a href="#mechanics">Механики</a></li>
+      <li><a href="#loot">Лут</a></li>
+      <li><a href="#disasters">Катастрофы</a></li>
+      <li><a href="#tech">Технологии</a></li>
+      <li><a href="#arch">Архитектура</a></li>
+      <li><a href="#mvp">MVP Scope</a></li>
+      <li><a href="#roadmap">Роадмап</a></li>
+      <li><a href="#risks">Риски</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Product Requirements Document v1.0</div>
+    <h1>MYTE</h1>
+    <p class="hero-sub">
+      4-player co-op PvE risk-looter. Бегите навстречу катастрофам, мутируйте снаряжение, выживайте в хаосе и эвакуируйтесь с безумным лутом, пока всё не рухнуло.
+    </p>
+    <div class="stat-row" style="justify-content: center;">
+      <div class="stat-item"><div class="stat-value purple">2–4</div><div class="stat-label">игрока</div></div>
+      <div class="stat-item"><div class="stat-value teal">7–10</div><div class="stat-label">мин / сессия</div></div>
+      <div class="stat-item"><div class="stat-value orange">8</div><div class="stat-label">недель до MVP</div></div>
+      <div class="stat-item"><div class="stat-value blue">200 КБ</div><div class="stat-label">клиент</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TABLE OF CONTENTS ============ -->
+<hr class="div">
+<section class="section">
+  <div class="section-num">Содержание</div>
+  <h2>Оглавление</h2>
+  <ol class="toc" style="margin-top: 1.5rem;">
+    <li><span class="num">01</span><a href="#vision">Видение продукта и High Concept</a></li>
+    <li><span class="num">02</span><a href="#team">Команда и роли</a></li>
+    <li><span class="num">03</span><a href="#gameplay">Core Gameplay Loop</a></li>
+    <li><span class="num">04</span><a href="#mechanics">Игровые механики</a></li>
+    <li><span class="num">05</span><a href="#loot">Лут-система и мутации</a></li>
+    <li><span class="num">06</span><a href="#disasters">Система катастроф</a></li>
+    <li><span class="num">07</span><a href="#enemies">Враги и AI</a></li>
+    <li><span class="num">08</span><a href="#map">Карта и окружение</a></li>
+    <li><span class="num">09</span><a href="#sound">Звуковой дизайн</a></li>
+    <li><span class="num">10</span><a href="#art">Арт-стиль</a></li>
+    <li><span class="num">11</span><a href="#tech">Технологический стек</a></li>
+    <li><span class="num">12</span><a href="#arch">Архитектура мультиплеера</a></li>
+    <li><span class="num">13</span><a href="#mvp">MVP Scope — что включено, что отложено</a></li>
+    <li><span class="num">14</span><a href="#roadmap">Роадмап 8 недель</a></li>
+    <li><span class="num">15</span><a href="#risks">Риски и митигация</a></li>
+    <li><span class="num">16</span><a href="#success">Критерии успеха</a></li>
+  </ol>
+</section>
+
+<!-- ============ 01 VISION ============ -->
+<hr class="div">
+<section class="section" id="vision">
+  <div class="section-num">01 — Видение продукта</div>
+  <h2>High Concept</h2>
+  <p class="section-lead">Короткосессионная (7–10 мин) кооперативная PvE-игра, построенная вокруг принятия решений в панике, социального хаоса и высокорискового лута.</p>
+
+  <div class="card">
+    <h3>One-Liner</h3>
+    <p style="font-size: 1.15rem; color: var(--text-bright); font-weight: 600;">4-player co-op PvE risk-looter: бегите навстречу катастрофам, мутируйте снаряжение, выживайте в хаосе, эвакуируйтесь с безумным лутом до того, как мир рухнет.</p>
+  </div>
+
+  <h3 style="color: var(--text-bright); margin: 2rem 0 1rem;">Core Pillars — незыблемые основы</h3>
+  <div class="grid-3">
+    <div class="mini accent"><h4>Run Toward Danger</h4><p>Лучшие награды — внутри катастроф. Безопасность = скука.</p></div>
+    <div class="mini accent"><h4>Panic Creates Comedy</h4><p>Быстрые решения, ошибки, истории. Если спокойно дольше 30 сек — что-то не так.</p></div>
+    <div class="mini accent"><h4>Social Chaos</h4><p>Тиммейты опасны не менее окружения. Предметы влияют на команду.</p></div>
+    <div class="mini accent"><h4>Loot With Personality</h4><p>Предметы меняют поведение, а не просто статы. Функциональный юмор.</p></div>
+    <div class="mini accent"><h4>Short but Intense</h4><p>Никаких survival-рутин. 7–10 минут. «Ещё один забег» энергия.</p></div>
+  </div>
+
+  <h3 style="color: var(--text-bright); margin: 2rem 0 1rem;">Player Experience Goals</h3>
+  <p>Игроки должны последовательно чувствовать:</p>
+  <div class="grid-3" style="margin-top: 1rem;">
+    <div class="mini green"><h4>Urgency</h4><p>Таймер, звуковые предупреждения, сужающаяся зона</p></div>
+    <div class="mini green"><h4>Panic</h4><p>Катастрофа + ценный лут + таймер = паника</p></div>
+    <div class="mini green"><h4>Greed</h4><p>«Ещё один предмет... ещё один...» — и не успел уйти</p></div>
+    <div class="mini green"><h4>Relief</h4><p>Успешная эвакуация с полным рюкзаком</p></div>
+    <div class="mini green"><h4>Laughter</h4><p>Тиммейт плюнул от верблюжьего мяса и сбил всех</p></div>
+    <div class="mini green"><h4>"One More Run"</h4><p>7 минут — не жалко попробовать ещё</p></div>
+  </div>
+
+  <div class="callout" style="margin-top: 2rem;">
+    <div class="callout-title">Стратегическое напоминание</div>
+    <p>Мы НЕ строим survival-игру. Мы строим <strong>Social Risk Engine</strong>. Каждая фича должна отвечать на вопрос: «Создаст ли это историю, которую расскажут друзьям?» Если нет — под вопрос.</p>
+  </div>
+</section>
+
+<!-- ============ 02 TEAM ============ -->
+<hr class="div">
+<section class="section" id="team">
+  <div class="section-num">02 — Команда</div>
+  <h2>Команда и роли</h2>
+  <p class="section-lead">5 человек, 2–3 часа/неделю каждый, удалённая работа, бюджет — $0.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Имя</th><th>Роль</th><th>Ответственность</th><th>Часы/нед</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Yakov Vasiliev</strong></td><td>Executive Producer / Tech Lead</td><td>Технологический стек, архитектура, код клиента и сервера, интеграция</td><td>2–3</td></tr>
+        <tr><td><strong>Mark Dmitriev</strong></td><td>Producer</td><td>Управление проектом, MVP scope, таймлайны, приоритизация фич, risk management</td><td>2–3</td></tr>
+        <tr><td><strong>Egor</strong></td><td>Game Designer</td><td>GDD, core loop, баланс, система катастроф, лут-дизайн, уровни</td><td>2–3</td></tr>
+        <tr><td><strong>Timur Dmitriev</strong></td><td>Art Director</td><td>Визуальный стиль, персонажи, предметы, UI, concept art, sprites</td><td>2–3</td></tr>
+        <tr><td><strong>Martin</strong></td><td>Sound Designer</td><td>SFX, ambient, музыка, звуковые cues катастроф, сигнатурный аудиостиль</td><td>2–3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-value purple">10–15</div><div class="stat-label">человеко-часов / неделю</div></div>
+    <div class="stat-item"><div class="stat-value teal">80–120</div><div class="stat-label">человеко-часов за 8 недель</div></div>
+    <div class="stat-item"><div class="stat-value orange">16–24</div><div class="stat-label">часов кода (Yakov)</div></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Ритуалы</div>
+    <p>Еженедельная встреча по вторникам ~17:00–20:00 CET. Async-коммуникация через Telegram-группу MYTE. Каждую неделю: конкретные deliverables от каждого участника.</p>
+  </div>
+</section>
+
+<!-- ============ 03 GAMEPLAY ============ -->
+<hr class="div">
+<section class="section" id="gameplay">
+  <div class="section-num">03 — Core Gameplay Loop</div>
+  <h2>Цикл игры</h2>
+  <p class="section-lead">Каждая сессия длится 7–10 минут и проходит через 6 фаз. Если сессия тянется к 15+ мин — режем механики.</p>
+
+  <div class="card">
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: var(--gradient-1); color: #fff; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Lobby (30 сек)</h4><p>Выбор loadout / «жадный вход» (без снаряжения за бонус к луту). Быстрое обсуждение в команде.</p></div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: var(--gradient-1); color: #fff; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">2</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Drop Into Map (1 мин)</h4><p>Команда появляется на карте. Хватают ранний лут, разведывают зоны катастроф.</p></div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: var(--gradient-2); color: #000; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">3</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Tension Builds (2–3 мин)</h4><p>Найден сундук-пазл. Появляется предупреждение о катастрофе. Команда спорит: открывать или убегать?</p></div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: var(--gradient-3); color: #000; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">4</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Commit to Risk (2–3 мин)</h4><p>Заходим в зону опасности. Лут мутирует. Физический хаос. Кто-то почти погибает.</p></div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: linear-gradient(135deg, var(--red), var(--orange)); color: #000; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">5</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Extraction Decision (1 мин)</h4><p>Уйти безопасно с тем что есть? Или рискнуть ещё? Таймер тикает.</p></div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: linear-gradient(135deg, var(--green), var(--blue)); color: #000; font-weight: 800; font-size: 0.8rem; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">6</div>
+        <div><h4 style="margin: 0; color: var(--text-bright);">Loot Reveal Ceremony (30 сек)</h4><p>Театральный показ добычи: предметы выпадают по одному, редкие — со свечением и паузой. Крик / смех / «ЕЩЁ ОДИН ЗАБЕГ».</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Правило: каждый шаг создаёт эмоцию</div>
+    <p>Нет филлерных шагов. Lobby = ожидание + стратегия. Drop = исследование + жадность. Tension = страх + надежда. Risk = паника + адреналин. Extraction = жадность vs осторожность. Reveal = удовлетворение + смех.</p>
+  </div>
+</section>
+
+<!-- ============ 04 MECHANICS ============ -->
+<hr class="div">
+<section class="section" id="mechanics">
+  <div class="section-num">04 — Игровые механики</div>
+  <h2>Ключевые механики</h2>
+
+  <div class="card">
+    <h3>Risk-Reward как основа геймплея</h3>
+    <p>Вся игра построена вокруг выбора: <strong>безопасно и скучно</strong> vs <strong>опасно и богато</strong>.</p>
+    <h4>Примеры решений игрока:</h4>
+    <ul>
+      <li>Зона катастрофы через 15 секунд. Внутри — редкий сундук. Успею?</li>
+      <li>У меня epic-меч. Молния может его мутировать в legendary... или уничтожить.</li>
+      <li>Рюкзак полон. Бросить common-предмет ради шанса на rare?</li>
+      <li>Тиммейт кричит «беги», но я вижу свечение за углом...</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Panic Design Rules</h3>
+    <p>Для создания настоящей паники <strong>всегда комбинируем</strong>:</p>
+    <div class="grid-3">
+      <div class="mini orange"><h4>Давление времени</h4><p>Таймер, тикающий звук, сужение зоны</p></div>
+      <div class="mini orange"><h4>Видимая угроза</h4><p>Торнадо на горизонте, трещины в земле</p></div>
+      <div class="mini orange"><h4>Ценная награда</h4><p>Светящийся сундук, мерцающий предмет</p></div>
+    </div>
+    <p style="margin-top: 1rem;">Пример: <strong>пазл-сундук + таймер приближающейся катастрофы</strong>. Решаешь пазл под давлением — и если успел, получаешь мутированный лут. Если нет — бежишь. Идеальный дизайн.</p>
+  </div>
+
+  <div class="card">
+    <h3>Инвентарь (упрощённый)</h3>
+    <p><strong>2–3 фиксированных слота:</strong> оружие, броня, утилита.</p>
+    <ul>
+      <li>Клик / нажатие — подобрать предмет в слот</li>
+      <li>Если слот занят — старый предмет выпадает на землю</li>
+      <li>Никакого drag-and-drop, веса, стакинга, сортировки</li>
+    </ul>
+    <p style="margin-top: 0.5rem; color: var(--text-dim);">Прецедент: Lethal Company, Content Warning — 1 предмет в руках. Этого достаточно для хита.</p>
+  </div>
+
+  <div class="card">
+    <h3>Экстракция</h3>
+    <p>Фиксированная точка (или точки) эвакуации на карте. Таймер сессии = жёсткий дедлайн.</p>
+    <ul>
+      <li>Добрался до точки до конца таймера → сохраняешь весь лут</li>
+      <li>Не добрался → теряешь всё (или часть, настроим балансом)</li>
+      <li>Можно эвакуироваться раньше, но команда без тебя уязвимее</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 05 LOOT ============ -->
+<hr class="div">
+<section class="section" id="loot">
+  <div class="section-num">05 — Лут-система и мутации</div>
+  <h2>Система лута</h2>
+  <p class="section-lead">Два типа лута: Survival Gear (помогает выживать с трейдоффами) и Chaos Loot (создаёт социальную непредсказуемость). Функциональный юмор важнее косметического.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Survival Gear</h3>
+      <p>Помогает пережить катастрофы, но с трейдоффами:</p>
+      <ul>
+        <li><strong>Зимняя куртка</strong> — выживаешь в метели, но -1 слот инвентаря</li>
+        <li><strong>Огнеупорные ботинки</strong> — ходишь по лаве, но бегаешь медленнее</li>
+        <li><strong>Магнитный рюкзак</strong> — собирает лут автоматически, но притягивает мусор</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Трейдоффы создают споры в команде. Споры создают контент для клипов.</p>
+    </div>
+    <div class="card">
+      <h3>Chaos Loot</h3>
+      <p>Создаёт социальную непредсказуемость:</p>
+      <ul>
+        <li><strong>Подозрительное мясо верблюда</strong> — лечит, но заставляет кричать и плеваться (плевок сбивает тиммейтов)</li>
+        <li><strong>Гравитационная граната</strong> — притягивает всех к одной точке (включая своих)</li>
+        <li><strong>Зеркальный щит</strong> — отражает урон обратно... и в тиммейтов</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Правило: если предмет заставляет тиммейтов кричать — оставляем.</p>
+    </div>
+  </div>
+
+  <h3 style="color: var(--text-bright); margin: 2rem 0 1rem;">Система мутаций</h3>
+  <div class="card">
+    <p>Катастрофы могут <strong>трансформировать</strong> предметы. Реализация — lookup table.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Базовый предмет</th><th>Молния</th><th>Метель</th><th>Метеорит</th><th>Лёд</th></tr></thead>
+        <tbody>
+          <tr><td>Ржавый меч</td><td>Электрический меч</td><td>Ледяной клинок</td><td>Расплавленное лезвие</td><td>Кристальная сабля</td></tr>
+          <tr><td>Кожаный щит</td><td>Статический баклер</td><td>Ледяной страж</td><td>Обожжённый барьер</td><td>Ледяная стена</td></tr>
+          <tr><td>Магнитный рюкзак</td><td>Тесла-пак</td><td>Крио-контейнер</td><td>Кузнечная сумка</td><td>Скользкая сумка</td></tr>
+          <tr><td>Деревянный лук</td><td>Дуговой стрелок</td><td>Замёрзший ствол</td><td>Углеродное волокно</td><td>Хрустальный лук</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 1rem;">10–15 базовых предметов x 4 катастрофы = <strong>40–60 уникальных мутаций</strong>. Игрок намеренно рискует предметом, входя в зону катастрофы — это становится мета-стратегией.</p>
+  </div>
+
+  <h3 style="color: var(--text-bright); margin: 2rem 0 1rem;">Редкость предметов</h3>
+  <div class="grid-4">
+    <div class="mini" style="border-left: 3px solid #8888a0;"><h4>Common</h4><p>60% дропа. Базовые предметы.</p></div>
+    <div class="mini" style="border-left: 3px solid var(--green);"><h4>Uncommon</h4><p>25% дропа. С одним эффектом.</p></div>
+    <div class="mini" style="border-left: 3px solid var(--accent);"><h4>Rare</h4><p>12% дропа. Мутированные + уникальный эффект.</p></div>
+    <div class="mini" style="border-left: 3px solid var(--orange);"><h4>Legendary</h4><p>3% дропа. Меняют геймплей. Screenshot-worthy.</p></div>
+  </div>
+
+  <h3 style="color: var(--text-bright); margin: 2rem 0 1rem;">Loot Reveal Ceremony</h3>
+  <div class="callout success">
+    <div class="callout-title">Театральный показ — обязательная фича</div>
+    <p>НЕ показывать просто список. Предметы выпадают по одному. Редкие — со свечением. Перед legendary — фейковая пауза (0.5 сек). Это сильнейше повышает retention. Малые затраты — огромный эффект.</p>
+  </div>
+</section>
+
+<!-- ============ 06 DISASTERS ============ -->
+<hr class="div">
+<section class="section" id="disasters">
+  <div class="section-num">06 — Система катастроф</div>
+  <h2>Signature Mechanic: катастрофы</h2>
+  <p class="section-lead">Катастрофы — не просто опасности. Они — <strong>возможности</strong>. Телеграфируются заранее, чтобы игрок принимал осознанное решение.</p>
+
+  <div class="grid-2">
+    <div class="card" style="border-top: 3px solid #74b9ff;">
+      <h3>Метель (Blizzard)</h3>
+      <ul>
+        <li>Замедляет движение в зоне</li>
+        <li>Замораживает предметы на земле</li>
+        <li>Замороженные предметы могут мутировать</li>
+        <li>Лыжи становятся высокоценным снаряжением</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Длительность: ~15 сек. Нарастает постепенно.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--orange);">
+      <h3>Метеоритный шторм</h3>
+      <ul>
+        <li>Удары создают зоны с редкой рудой</li>
+        <li>Высокий урон в радиусе поражения</li>
+        <li>Высокий risk → высокий reward</li>
+        <li>Метеоритная руда = лучшие мутации</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Длительность: ~12 сек. Серия ударов.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--orange);">
+      <h3>Грозовой шторм (Lightning)</h3>
+      <ul>
+        <li>Молнии бьют в случайные точки</li>
+        <li>Могут апгрейдить металлическое снаряжение</li>
+        <li>Электрические цепные эффекты</li>
+        <li>Проводящие предметы = приманка для молний</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Длительность: ~10 сек. Быстрые удары.</p>
+    </div>
+    <div class="card" style="border-top: 3px solid #74b9ff;">
+      <h3>Ледяное событие (Ice)</h3>
+      <ul>
+        <li>Земля покрывается скользким льдом</li>
+        <li>Инерция движения — скольжение</li>
+        <li>Лыжи/коньки = бонус</li>
+        <li>Враги тоже скользят — комедийный эффект</li>
+      </ul>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Длительность: ~15 сек. Нарастает.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Правило катастроф</div>
+    <p>Катастрофы <strong>телеграфируются</strong> (предупреждение за 3–5 сек): звук, визуальный индикатор, зона на карте. Игрок ВСЕГДА принимает осознанное решение: войти или убежать. Катастрофы создают решения, а не только урон.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">MVP: начинаем с 3 катастроф</div>
+    <p>Для MVP достаточно 3 из 4. Четвёртую добавляем после полировки первых трёх. Каждая катастрофа = скриптовый таймлайн на 10–15 секунд, ~3–4 часа на все три.</p>
+  </div>
+</section>
+
+<!-- ============ 07 ENEMIES ============ -->
+<hr class="div">
+<section class="section" id="enemies">
+  <div class="section-num">07 — Враги и AI</div>
+  <h2>Вражеские существа</h2>
+  <p class="section-lead">AI на 3-state машине: Wander / Chase / Attack. Простота = запоминаемость.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Архетипы врагов (MVP: 2–3 типа)</h3>
+      <ul>
+        <li><strong>Stalker</strong> — медленно бродит, ускоряется при обнаружении игрока. Как Bracken из Lethal Company.</li>
+        <li><strong>Swarm</strong> — слабые поодиночке, опасные группой. Как в Vampire Survivors.</li>
+        <li><strong>Guardian</strong> — стоит у ценного лута. Не преследует, но атакует при приближении.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Взаимодействие с катастрофами</h3>
+      <ul>
+        <li>Враги тоже подвержены катастрофам: скользят по льду, отбрасываются метеоритами</li>
+        <li>Это создаёт комедийные моменты: враг, преследующий тебя, улетает от метеорита</li>
+        <li>Катастрофы — нейтральная сила: опасна и для игроков, и для врагов</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 MAP ============ -->
+<hr class="div">
+<section class="section" id="map">
+  <div class="section-num">08 — Карта и окружение</div>
+  <h2>Дизайн арены</h2>
+  <p class="section-lead">Одна карта. Handcrafted, не процедурная. Структура как настольная игра, не open world.</p>
+
+  <div class="card">
+    <h3>Принципы дизайна карты</h3>
+    <ul>
+      <li><strong>Зоны безопасности</strong> — мало лута, мало врагов, стартовая зона</li>
+      <li><strong>Зоны среднего риска</strong> — обычный лут, обычные враги</li>
+      <li><strong>Зоны высокого риска</strong> — лучший лут, сильные враги, катастрофы чаще</li>
+      <li><strong>Точка эвакуации</strong> — фиксированная позиция, подсвечена</li>
+      <li><strong>Спавн-точки лута</strong> — рандомизируются каждую сессию (из пула предустановленных)</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">MVP: 2 ручных layout</div>
+    <p>Никакой процедурной генерации. 2 арены, созданных вручную. Рандомизация: какой лут спавнится, последовательность катастроф, типы врагов. Игроки не заметят повтора первые 20–30 сессий.</p>
+  </div>
+</section>
+
+<!-- ============ 09 SOUND ============ -->
+<hr class="div">
+<section class="section" id="sound">
+  <div class="section-num">09 — Звуковой дизайн</div>
+  <h2>Аудио (Martin)</h2>
+  <p class="section-lead">Звук — множитель паники. Игроки должны слышать катастрофу ДО того, как увидят.</p>
+
+  <div class="grid-2">
+    <div class="mini pink"><h4>Катастрофы</h4><p>Каждая катастрофа = уникальный audio-cue за 3–5 секунд до начала. Нарастающий, угрожающий.</p></div>
+    <div class="mini pink"><h4>Лут</h4><p>Подбирание: короткий «pop». Редкий: мерцающий звон. Legendary: эпический riser.</p></div>
+    <div class="mini pink"><h4>Мутация</h4><p>Электрический треск (молния), хрустальный звон (лёд), глухой удар (метеорит), вьюга-свист (метель).</p></div>
+    <div class="mini pink"><h4>Signature sound</h4><p>Один узнаваемый звук, по которому MYTE узнают в клипах. Как рог из Lethal Company.</p></div>
+    <div class="mini pink"><h4>Extraction</h4><p>Тикающий таймер, нарастающий ambient, звук успешной эвакуации = облегчение.</p></div>
+    <div class="mini pink"><h4>Loot Ceremony</h4><p>Барабанная дробь, раскрытие предметов один за другим, legendary = бас-дроп.</p></div>
+  </div>
+</section>
+
+<!-- ============ 10 ART ============ -->
+<hr class="div">
+<section class="section" id="art">
+  <div class="section-num">10 — Арт-стиль</div>
+  <h2>Визуальный стиль (Timur)</h2>
+  <p class="section-lead">«Soft sketch minimalism» — мягкие линии, минимализм, мгновенная узнаваемость на маленьких экранах.</p>
+
+  <div class="card">
+    <h3>Требования к визуалу</h3>
+    <ul>
+      <li><strong>Читаемость в хаосе:</strong> персонажи и предметы видны даже во время катастрофы</li>
+      <li><strong>Узнаваемые силуэты:</strong> каждый предмет и враг определяется по контуру</li>
+      <li><strong>Ограниченная анимация:</strong> реализуемо 1 художником за 2–3 часа/неделю</li>
+      <li><strong>Работает на малых разрешениях:</strong> браузер / мобильный</li>
+      <li><strong>AI-ассистированная генерация:</strong> Midjourney / DALL-E для concept art, ручная доработка для game-ready sprites</li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">MVP арт-приоритеты</div>
+    <p>1. Персонажи (4 цвета, простая анимация). 2. Предметы (силуэты + цвет редкости). 3. Катастрофы (particle effects). 4. Карта (тайлы). НЕ приоритет: детализированный UI, кат-сцены, маркетинговые арты.</p>
+  </div>
+</section>
+
+<!-- ============ 11 TECH ============ -->
+<hr class="div">
+<section class="section" id="tech">
+  <div class="section-num">11 — Технологический стек</div>
+  <h2>Технологии</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Компонент</th><th>Технология</th><th>Версия</th><th>Почему</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Игровой движок</strong></td><td>Phaser</td><td>4.0 RC6</td><td>200 КБ бандл, браузерный нативно, TypeScript</td></tr>
+        <tr><td><strong>Мультиплеер</strong></td><td>Colyseus</td><td>0.17</td><td>Комнаты, автосинк, TypeScript E2E, туториал для Phaser</td></tr>
+        <tr><td><strong>Язык</strong></td><td>TypeScript</td><td>5.x</td><td>Один язык на клиент и сервер</td></tr>
+        <tr><td><strong>Сборка</strong></td><td>Vite</td><td>latest</td><td>Мгновенный hot reload</td></tr>
+        <tr><td><strong>Клиент-хостинг</strong></td><td>Vercel / Netlify</td><td>—</td><td>Бесплатно, CDN</td></tr>
+        <tr><td><strong>Сервер-хостинг</strong></td><td>Fly.io</td><td>—</td><td>$0–5/мес, автомасштабирование</td></tr>
+        <tr><td><strong>Физика</strong></td><td>Phaser Arcade + Tweens</td><td>—</td><td>Фейк для хаоса, Arcade для коллизий</td></tr>
+        <tr><td><strong>Аудио</strong></td><td>Phaser Sound Manager</td><td>—</td><td>Встроено, WebAudio API</td></tr>
+        <tr><td><strong>Версионирование</strong></td><td>Git + GitHub</td><td>—</td><td>Стандарт</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 12 ARCHITECTURE ============ -->
+<hr class="div">
+<section class="section" id="arch">
+  <div class="section-num">12 — Архитектура мультиплеера</div>
+  <h2>Host-based через relay</h2>
+  <p class="section-lead">Один игрок — хост (считает логику). Colyseus-сервер — relay (пересылает данные). Клиенты — рендереры с инпутом.</p>
+
+  <div class="card">
+    <h3>Что синхронизируется</h3>
+    <div class="table-wrap" style="margin-top: 0.75rem;">
+      <table>
+        <thead><tr><th>Данные</th><th>Частота</th><th>Направление</th></tr></thead>
+        <tbody>
+          <tr><td>Позиции игроков</td><td>10–15 Hz</td><td>Client → Host → All</td></tr>
+          <tr><td>Позиции врагов</td><td>10 Hz</td><td>Host → All</td></tr>
+          <tr><td>Лут (подбор/дроп/мутация)</td><td>По событию</td><td>Host → All</td></tr>
+          <tr><td>Катастрофы</td><td>По событию</td><td>Host → All (seed + timestamp)</td></tr>
+          <tr><td>Урон / здоровье</td><td>По событию</td><td>Host → All</td></tr>
+          <tr><td>Таймер сессии</td><td>Каждые 5 сек</td><td>Host → All (коррекция)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 1rem; color: var(--text-dim);">Итого: ~1–2 КБ на апдейт. 10–40 КБ/сек трафика.</p>
+  </div>
+</section>
+
+<!-- ============ 13 MVP SCOPE ============ -->
+<hr class="div">
+<section class="section" id="mvp">
+  <div class="section-num">13 — MVP Scope</div>
+  <h2>Что включено в MVP, что отложено</h2>
+
+  <div class="grid-2">
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color: var(--green);">Включено в MVP</h3>
+      <ul>
+        <li>Мультиплеер на 2–4 игрока (host-based)</li>
+        <li>1 карта (2 layout'а)</li>
+        <li>3 типа катастроф</li>
+        <li>2–3 типа врагов</li>
+        <li>25–40 предметов</li>
+        <li>Система мутаций (lookup table)</li>
+        <li>Loot Reveal Ceremony</li>
+        <li>Core loop: drop → collect → survive → extract</li>
+        <li>Таймер сессии 7–10 мин</li>
+        <li>Базовый UI: здоровье, инвентарь, таймер</li>
+        <li>Screen shake, particles, slow-motion</li>
+        <li>3–5 звуковых эффектов на катастрофу</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h3 style="color: var(--red);">НЕ включено в MVP</h3>
+      <ul>
+        <li>Более 40 предметов</li>
+        <li>Сложный крафтинг</li>
+        <li>Глубокая прогрессия / аккаунты</li>
+        <li>Множество карт</li>
+        <li>Более 4 катастроф</li>
+        <li>Процедурная генерация</li>
+        <li>Реальная физика</li>
+        <li>Lag compensation / rollback</li>
+        <li>Мобильная версия</li>
+        <li>Голосовой чат</li>
+        <li>Лидерборды</li>
+        <li>Сезоны / battle pass</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-value teal">25–40</div><div class="stat-label">предметов</div></div>
+    <div class="stat-item"><div class="stat-value purple">3</div><div class="stat-label">катастрофы</div></div>
+    <div class="stat-item"><div class="stat-value orange">2–3</div><div class="stat-label">типа врагов</div></div>
+    <div class="stat-item"><div class="stat-value blue">2</div><div class="stat-label">layout'а карты</div></div>
+  </div>
+</section>
+
+<!-- ============ 14 ROADMAP ============ -->
+<hr class="div">
+<section class="section" id="roadmap">
+  <div class="section-num">14 — Роадмап</div>
+  <h2>8-недельный план</h2>
+  <p class="section-lead">Начало: 28 января 2026. Дедлайн MVP: ~25 марта 2026.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Неделя</th><th>Даты</th><th>Фокус</th><th>Deliverables</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>1–2</strong></td>
+          <td>28 янв — 10 фев</td>
+          <td>Research + GDD</td>
+          <td><span class="tag green">Done</span> Deep research по ролям, GDD, лендинг, определение стека</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>10–17 фев</td>
+          <td>Ответы на decision questions</td>
+          <td><span class="tag green">Done</span> 7 вопросов от каждого, уточнение GDD</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>17–24 фев</td>
+          <td>Prototype foundation</td>
+          <td>Phaser + Colyseus boilerplate. 4 игрока видят друг друга на карте и двигаются. Первые звуки и арт-стиль.</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>24 фев — 3 мар</td>
+          <td>Core mechanics</td>
+          <td>Лут спавнится, подбирается, выбрасывается. 1 катастрофа работает. AI врагов (1 тип). Базовый UI.</td>
+        </tr>
+        <tr>
+          <td><strong>6</strong></td>
+          <td>3–10 мар</td>
+          <td>Game loop</td>
+          <td>Таймер, экстракция, Loot Reveal. Мутация лута. +2 катастрофы. +1–2 типа врагов.</td>
+        </tr>
+        <tr>
+          <td><strong>7</strong></td>
+          <td>10–17 мар</td>
+          <td>Content + Polish</td>
+          <td>Все 25–40 предметов. Все мутации. Звуки для всего. Screen shake, particles, slow-mo. 2-й layout карты.</td>
+        </tr>
+        <tr>
+          <td><strong>8</strong></td>
+          <td>17–25 мар</td>
+          <td>Testing + Launch</td>
+          <td>Playtesting с друзьями. Баг-фиксы. Деплой на Vercel + Fly.io. Ссылка для игры.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Критическая milestone — неделя 5</div>
+    <p>К концу недели 5 игра ДОЛЖНА быть «playable»: 4 игрока на карте, лут подбирается, 1 катастрофа, 1 тип врагов, таймер. Если к этому моменту нет playable prototype — нужно агрессивно резать scope.</p>
+  </div>
+</section>
+
+<!-- ============ 15 RISKS ============ -->
+<hr class="div">
+<section class="section" id="risks">
+  <div class="section-num">15 — Риски</div>
+  <h2>Риски и митигация</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Риск</th><th>Вероятность</th><th>Влияние</th><th>Митигация</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Участники теряют мотивацию / пропускают недели</td>
+          <td><span class="tag red">Высокая</span></td>
+          <td><span class="tag red">Критичное</span></td>
+          <td>Еженедельные встречи с конкретными deliverables. Маленькие задачи = ощущение прогресса.</td>
+        </tr>
+        <tr>
+          <td>Scope creep — хотим слишком много</td>
+          <td><span class="tag red">Высокая</span></td>
+          <td><span class="tag red">Критичное</span></td>
+          <td>PRD как контракт. Всё за пределами MVP = «после запуска». Mark как Producer следит.</td>
+        </tr>
+        <tr>
+          <td>Мультиплеер сложнее ожидаемого</td>
+          <td><span class="tag orange">Средняя</span></td>
+          <td><span class="tag red">Критичное</span></td>
+          <td>Colyseus + Phaser tutorial как стартовая точка. Fallback: Playroom Kit (ещё проще).</td>
+        </tr>
+        <tr>
+          <td>Не хватает контента (предметы, враги)</td>
+          <td><span class="tag orange">Средняя</span></td>
+          <td><span class="tag orange">Среднее</span></td>
+          <td>Минимум 25 предметов. AI-генерация названий/описаний. Лучше 15 отполированных, чем 40 сырых.</td>
+        </tr>
+        <tr>
+          <td>Арт/звук не готовы вовремя</td>
+          <td><span class="tag orange">Средняя</span></td>
+          <td><span class="tag orange">Среднее</span></td>
+          <td>Placeholder-ассеты: цветные прямоугольники + бесплатные звуки. Финальный арт/звук подключаем в недели 7–8.</td>
+        </tr>
+        <tr>
+          <td>Геймплей не fun</td>
+          <td><span class="tag orange">Средняя</span></td>
+          <td><span class="tag red">Критичное</span></td>
+          <td>Playtesting каждую неделю начиная с 5-й. Быстрая итерация. Screen shake + juice решают 70% проблем с «feel».</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 16 SUCCESS ============ -->
+<hr class="div">
+<section class="section" id="success">
+  <div class="section-num">16 — Критерии успеха</div>
+  <h2>Когда MVP считается завершённым</h2>
+
+  <div class="grid-2">
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3>Must Have (без этого не запускаем)</h3>
+      <ul>
+        <li>4 игрока подключаются по ссылке в браузере</li>
+        <li>Видят друг друга, двигаются, взаимодействуют</li>
+        <li>Лут спавнится, подбирается, мутирует</li>
+        <li>Минимум 1 катастрофа работает</li>
+        <li>Минимум 1 тип врагов</li>
+        <li>Таймер + экстракция</li>
+        <li>Loot Reveal в конце</li>
+        <li>Сессия длится ~7–10 мин</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3>Метрики успеха (после запуска)</h3>
+      <ul>
+        <li><strong>Fun test:</strong> игроки говорят «ещё один забег» без просьбы</li>
+        <li><strong>Completion:</strong> 50%+ сессий доигрываются до конца</li>
+        <li><strong>Share moments:</strong> игроки делают скриншоты / записывают клипы</li>
+        <li><strong>Retention:</strong> 3+ сессии за одно сидение</li>
+        <li><strong>Learning:</strong> команда научилась запускать продукт от идеи до деплоя</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout success" style="margin-top: 2rem;">
+    <div class="callout-title">Главный критерий</div>
+    <p style="font-size: 1.1rem;">Что определяет успешный запуск — не количество игроков и не метрики. А то, что 5 человек за 8 недель прошли путь от «идея в чате» до «работающая мультиплеерная игра, в которую можно играть по ссылке». Это и есть цель.</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <p><strong>MYTE Studio</strong> — Product Requirements Document v1.0</p>
+  <p style="margin-top: 0.25rem;">18 февраля 2026 | Yakov Vasiliev</p>
+  <p style="margin-top: 1rem; opacity: 0.4;">Документ создан на основе 3 недель обсуждений команды MYTE и исследований технологического стека.</p>
+</footer>
+
+</body>
+</html>

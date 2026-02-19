@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MYTE — Технические решения | 18 февраля 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #1a1a26;
+    --bg-code: #0d0d16;
+    --border: #1e1e2e;
+    --border-accent: #2a2a3e;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --accent: #6c5ce7;
+    --accent-light: #a29bfe;
+    --green: #00cec9;
+    --green-dim: #00b8b422;
+    --red: #ff6b6b;
+    --red-dim: #ff6b6b22;
+    --orange: #fdcb6e;
+    --orange-dim: #fdcb6e22;
+    --blue: #74b9ff;
+    --blue-dim: #74b9ff22;
+    --pink: #fd79a8;
+    --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    --gradient-2: linear-gradient(135deg, #00cec9, #55efc4);
+    --gradient-3: linear-gradient(135deg, #fd79a8, #fdcb6e);
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 48px rgba(0,0,0,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--bg);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ===== NAV ===== */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    gap: 2rem;
+    overflow-x: auto;
+  }
+
+  .nav-logo {
+    font-weight: 800;
+    font-size: 1.1rem;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-links a:hover {
+    color: var(--text-bright);
+    background: var(--bg-card-hover);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(108,92,231,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(0,206,201,0.06) 0%, transparent 60%);
+    animation: heroGlow 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes heroGlow {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-2%, 2%) scale(1.05); }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    color: var(--accent-light);
+    margin-bottom: 2rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff 0%, #a29bfe 50%, #00cec9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto 3rem;
+    line-height: 1.8;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hero-meta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .hero-meta-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-bright);
+  }
+
+  .hero-meta-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 6rem 2rem;
+  }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+
+  .section h2 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: var(--text-bright);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .section-lead {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-bottom: 3rem;
+    max-width: 700px;
+    line-height: 1.8;
+  }
+
+  .divider {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+  }
+
+  /* ===== ANSWER BOX ===== */
+  .answer-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .answer-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-1);
+  }
+
+  .answer-box.green::before { background: var(--gradient-2); }
+  .answer-box.warm::before { background: var(--gradient-3); }
+
+  .answer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+  }
+
+  .answer-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1.4;
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.3s;
+  }
+
+  .card:hover { border-color: var(--border-accent); }
+
+  .card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .card p, .card li {
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .card ul, .card ol {
+    padding-left: 1.25rem;
+    margin: 0.75rem 0;
+  }
+
+  .card li { margin-bottom: 0.5rem; }
+
+  /* ===== GRID ===== */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  /* ===== MINI CARDS ===== */
+  .mini-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .mini-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.5rem;
+  }
+
+  .mini-card p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .mini-card.accent { border-left: 3px solid var(--accent); }
+  .mini-card.green-b { border-left: 3px solid var(--green); }
+  .mini-card.red-b { border-left: 3px solid var(--red); }
+  .mini-card.orange-b { border-left: 3px solid var(--orange); }
+
+  /* ===== TABLES ===== */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th {
+    background: var(--bg-card);
+    color: var(--text-bright);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108, 92, 231, 0.03); }
+
+  /* ===== CODE ===== */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block .lang {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .code-block pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .code-block .comment { color: #5c6370; }
+  .code-block .keyword { color: var(--accent-light); }
+  .code-block .string { color: var(--green); }
+  .code-block .func { color: var(--blue); }
+  .code-block .num { color: var(--orange); }
+
+  /* ===== DIAGRAM ===== */
+  .diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .diagram-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .diagram-box {
+    background: var(--bg);
+    border: 2px solid var(--border-accent);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    min-width: 140px;
+  }
+
+  .diagram-box.host {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.15);
+  }
+
+  .diagram-box.server {
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(0, 206, 201, 0.15);
+  }
+
+  .diagram-box.client {
+    border-color: var(--text-dim);
+  }
+
+  .diagram-arrow {
+    color: var(--text-dim);
+    font-size: 1.5rem;
+  }
+
+  .diagram-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+    font-weight: 400;
+  }
+
+  /* ===== TAGS ===== */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .tag.green { background: var(--green-dim); color: var(--green); }
+  .tag.red { background: var(--red-dim); color: var(--red); }
+  .tag.orange { background: var(--orange-dim); color: var(--orange); }
+  .tag.blue { background: var(--blue-dim); color: var(--blue); }
+
+  /* ===== COMPARE ===== */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    margin: 1.5rem 0;
+  }
+
+  .compare-vs {
+    font-weight: 800;
+    color: var(--text-dim);
+    padding-top: 1.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    margin: 2rem 0;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-accent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 1.5rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg);
+  }
+
+  .timeline-item.done::before { background: var(--green); }
+
+  .timeline-item h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.25rem;
+  }
+
+  .timeline-item p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ===== CALLOUT ===== */
+  .callout {
+    background: var(--bg-card);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+
+  .callout.warn { border-left-color: var(--orange); }
+  .callout.danger { border-left-color: var(--red); }
+  .callout.success { border-left-color: var(--green); }
+
+  .callout-title {
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .callout p {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ===== EXPLAIN BLOCK ===== */
+  .explain {
+    background: rgba(108, 92, 231, 0.04);
+    border: 1px solid rgba(108, 92, 231, 0.15);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+  }
+
+  .explain-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: var(--accent-light);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .explain p {
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.9;
+    margin-bottom: 0.75rem;
+  }
+
+  .explain p:last-child { margin-bottom: 0; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 4rem 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero { padding-top: 5rem; }
+    .section { padding: 3rem 1.25rem; }
+    .compare-row { grid-template-columns: 1fr; }
+    .compare-vs { display: none; }
+    .diagram-row { flex-direction: column; }
+    .diagram-arrow { transform: rotate(90deg); }
+  }
+
+  /* Smooth scroll offset for fixed nav */
+  [id] { scroll-margin-top: 80px; }
+
+  /* ===== FAKE-REAL TABLE ===== */
+  .fake-real {
+    margin: 1.5rem 0;
+  }
+
+  .fake-real-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 1px;
+  }
+
+  .fake-real-row:first-child .fake-real-cell {
+    font-weight: 700;
+    color: var(--text-bright);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .fake-real-cell {
+    background: var(--bg-card);
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .fake-real:first-child { border-radius: 12px 12px 0 0; overflow: hidden; }
+  .fake-real:last-child { border-radius: 0 0 12px 12px; overflow: hidden; }
+
+  .budget-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+  }
+
+  .budget-bar-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 160px;
+  }
+
+  .budget-bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--bg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .budget-bar-fill {
+    height: 100%;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bg);
+    transition: width 1s ease;
+  }
+
+  .budget-bar-fill.purple { background: var(--gradient-1); }
+  .budget-bar-fill.teal { background: var(--gradient-2); }
+  .budget-bar-fill.warm { background: var(--gradient-3); }
+  .budget-bar-fill.blue-g { background: linear-gradient(135deg, var(--blue), #a29bfe); }
+
+  .example-box {
+    background: var(--bg);
+    border: 1px dashed var(--border-accent);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .example-box-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin: 1.5rem 0;
+  }
+
+  .stat-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-value.purple { color: var(--accent-light); }
+  .stat-value.teal { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.orange { color: var(--orange); }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">MYTE Tech</div>
+    <ul class="nav-links">
+      <li><a href="#q1">Архитектура</a></li>
+      <li><a href="#q2">Убийца таймлайна</a></li>
+      <li><a href="#q3">Физика</a></li>
+      <li><a href="#q4">Системы</a></li>
+      <li><a href="#q5">Мутации</a></li>
+      <li><a href="#q6">Фейки</a></li>
+      <li><a href="#q7">Скрытые расходы</a></li>
+      <li><a href="#stack">Стек</a></li>
+      <li><a href="#summary">Итог</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Yakov Vasiliev &mdash; Executive Producer / Tech</div>
+    <h1>Технические решения MYTE</h1>
+    <p class="hero-subtitle">
+      7 вопросов, определяющих техническое будущее проекта.
+      Ответы с объяснениями, примерами кода, сравнениями стеков и реальными прецедентами из индустрии.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="hero-meta-value">16–24</div>
+        <div class="hero-meta-label">часов разработки</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-value">8</div>
+        <div class="hero-meta-label">недель до MVP</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-value">$0–5</div>
+        <div class="hero-meta-label">в месяц хостинг</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="hero-meta-value">200 КБ</div>
+        <div class="hero-meta-label">размер клиента</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 1 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q1">
+  <div class="section-number">Вопрос 01 из 07</div>
+  <h2>Какая самая простая мультиплеерная архитектура?</h2>
+  <p class="section-lead">
+    Мультиплеер — самая сложная часть любой онлайн-игры. Правильная архитектура упрощает всё остальное. Неправильная — убивает проект.
+  </p>
+
+  <div class="answer-box green">
+    <div class="answer-label">Решение</div>
+    <div class="answer-text">Host-based (хост-модель) через relay-сервер. Phaser + Colyseus, один язык (TypeScript) на клиент и сервер.</div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Объяснение для новичков</div>
+    <p>
+      <strong>Что такое мультиплеер?</strong> Когда 4 человека играют вместе онлайн, их компьютеры должны как-то синхронизировать картинку: если один игрок подобрал предмет, все остальные должны это увидеть. Для этого нужен «общий источник правды» — кто-то один решает, что «реально» произошло, а остальные подстраиваются.
+    </p>
+    <p>
+      <strong>Что такое «хост»?</strong> В хост-модели один из игроков (обычно тот, кто создал комнату) становится «главным компьютером». Его версия игры — каноничная. Он считает, где враги, куда падает лут, когда начинается метеоритный дождь. Остальные игроки просто отправляют свои нажатия клавиш хосту и получают обратно: «вот что произошло, рисуй это».
+    </p>
+    <p>
+      <strong>Что такое «relay-сервер»?</strong> Relay (ретранслятор) — это маленький сервер в интернете, который просто пересылает сообщения между игроками. Он не понимает правил игры, не считает физику, не знает про лут. Он как почтальон: берёт письмо от игрока A и доставляет игроку B. Это очень дёшево: ~50 строк кода, $0–5/месяц на хостинг.
+    </p>
+    <p>
+      <strong>Почему не «полностью серверная» модель?</strong> В полностью серверной модели сервер сам запускает всю игровую логику. Это безопаснее от читов, но в два раза сложнее в разработке: нужно писать и клиент, и сервер с игровой логикой. Для co-op PvE (где игроки кооперируются против окружения, а не друг против друга) читерство — не проблема. Все в одной команде.
+    </p>
+  </div>
+
+  <!-- Diagram -->
+  <div class="diagram">
+    <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Архитектура MYTE</div>
+    <div class="diagram-row">
+      <div class="diagram-box host">
+        Игрок 1 (HOST)
+        <div class="diagram-label">Считает игровую логику</div>
+      </div>
+      <div class="diagram-arrow">&harr;</div>
+      <div class="diagram-box server">
+        Colyseus Server
+        <div class="diagram-label">Relay — просто пересылает</div>
+      </div>
+      <div class="diagram-arrow">&harr;</div>
+      <div>
+        <div class="diagram-box client" style="margin-bottom: 0.5rem;">
+          Игрок 2
+          <div class="diagram-label">Отправляет инпут, рисует</div>
+        </div>
+        <div class="diagram-box client" style="margin-bottom: 0.5rem;">
+          Игрок 3
+          <div class="diagram-label">Отправляет инпут, рисует</div>
+        </div>
+        <div class="diagram-box client">
+          Игрок 4
+          <div class="diagram-label">Отправляет инпут, рисует</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Как игроки это ощущают?</div>
+    <p>
+      <strong>Хост (Игрок 1):</strong> Для него игра работает идеально — нулевая задержка, всё происходит мгновенно. Его компьютер и есть «сервер».
+    </p>
+    <p>
+      <strong>Остальные (Игроки 2–4):</strong> Небольшая задержка (50–100 мс), что для кооперативной игры незаметно. Они нажимают «вперёд», информация летит к хосту, хост обновляет мир и отправляет обратно. При хорошем интернете это происходит 10–20 раз в секунду — абсолютно плавно.
+    </p>
+    <p>
+      <strong>Lethal Company работает точно так же</strong> — хост запускает сервер локально, остальные подключаются. Игра с известными багами десинхронизации продалась миллионами копий. Для co-op PvE мелкие глюки даже добавляют «контента» — когда враг телепортируется, это смешно, а не обидно.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright); font-size: 1.1rem;">Что нужно синхронизировать?</h3>
+  <p style="margin-bottom: 1rem; color: var(--text-dim);">Весь игровой мир MYTE в каждый момент — это всего ~1–2 КБ данных:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Данные</th>
+          <th>Частота</th>
+          <th>Размер</th>
+          <th>Почему так</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Позиции игроков</td>
+          <td>10–15 раз/сек</td>
+          <td>~160 байт</td>
+          <td>Плавное движение с интерполяцией</td>
+        </tr>
+        <tr>
+          <td>Позиции врагов</td>
+          <td>10 раз/сек</td>
+          <td>~375 байт</td>
+          <td>Хост считает AI, отправляет позиции</td>
+        </tr>
+        <tr>
+          <td>Лут на земле</td>
+          <td>По событиям</td>
+          <td>~600 байт</td>
+          <td>Отправляется только при подборе/дропе</td>
+        </tr>
+        <tr>
+          <td>Катастрофа</td>
+          <td>По событиям</td>
+          <td>~20 байт</td>
+          <td>«Начинай метель с seed=42» — клиент проигрывает локально</td>
+        </tr>
+        <tr>
+          <td>Здоровье/урон</td>
+          <td>По событиям</td>
+          <td>~8 байт</td>
+          <td>Только при попадании</td>
+        </tr>
+        <tr>
+          <td>Таймер сессии</td>
+          <td>Каждые 5 сек</td>
+          <td>~4 байт</td>
+          <td>Клиенты крутят свой таймер + коррекция</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Итого: 10–40 КБ/сек трафика</div>
+    <p>Это ничтожно мало. Для сравнения, один JPEG-снимок из Telegram весит 100–500 КБ. Наш мультиплеер будет работать даже на мобильном интернете без проблем.</p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 2 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q2">
+  <div class="section-number">Вопрос 02 из 07</div>
+  <h2>Какое техническое решение может убить таймлайн?</h2>
+  <p class="section-lead">
+    Одно неправильное решение на старте может потратить все наши 16–24 часа разработки впустую. Вот три главных риска.
+  </p>
+
+  <div class="answer-box warm">
+    <div class="answer-label" style="color: var(--red);">Критический риск</div>
+    <div class="answer-text">Выбор движка. Это единственное решение, которое невозможно отменить посередине проекта.</div>
+  </div>
+
+  <!-- Risk 1 -->
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h3>&#x1F6A8; Риск #1 — Выбрать тяжёлый движок для браузера</h3>
+
+    <div class="explain">
+      <div class="explain-header">Объяснение для новичков</div>
+      <p>
+        <strong>Что такое «бандл»?</strong> Когда человек открывает нашу игру в браузере, его компьютер скачивает файлы с нашего сервера. Бандл — это общий размер этих файлов. Чем больше бандл — тем дольше загрузка. Если игра грузится 15 секунд, 80% людей закроют вкладку и уйдут.
+      </p>
+      <p>
+        <strong>Почему Godot и Unity — плохой выбор для браузера?</strong> Эти движки изначально созданы для установки на компьютер/телефон. Для работы в браузере им нужно перевести весь свой «двигатель» в формат WebAssembly (WASM) — это как перевести книгу на другой язык: получается длинно, тяжело и медленно.
+      </p>
+      <p>
+        <strong>Phaser — браузерный по рождению.</strong> Phaser написан на JavaScript — том же языке, на котором работает каждый браузер. Ему не нужна «трансляция». Он весит ~200 КБ и загружается за доли секунды.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Движок</th>
+            <th>Размер бандла</th>
+            <th>Время загрузки</th>
+            <th>Вердикт</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Phaser</strong></td>
+            <td>~200 КБ</td>
+            <td>&lt;1 секунды</td>
+            <td><span class="tag green">Идеально</span></td>
+          </tr>
+          <tr>
+            <td>PlayCanvas</td>
+            <td>1–3 МБ</td>
+            <td>1–3 сек</td>
+            <td><span class="tag orange">Допустимо</span></td>
+          </tr>
+          <tr>
+            <td>Unity 6</td>
+            <td>10–40 МБ</td>
+            <td>5–30 сек</td>
+            <td><span class="tag red">Смертельно</span></td>
+          </tr>
+          <tr>
+            <td>Godot 4</td>
+            <td>10–50 МБ</td>
+            <td>3–15 сек</td>
+            <td><span class="tag red">Смертельно</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout danger">
+      <div class="callout-title">Конкретный пример: Unity 6</div>
+      <p>Пустой проект на Unity 6 с URP (стандартным рендерером) весит <strong>10.7 МБ</strong>. Из них 2.7 МБ — это логотип Unity, 2.7 МБ — текстуры «эффекта плёнки» (film grain), которые никто не использует. После героических усилий по оптимизации (удаление пакетов, stripping, LTO) — <strong>2.0 МБ пустой проект</strong>. Добавьте реальную игру — и вы обратно на 20–40 МБ. Тестирование инженером Unity подтверждает эти цифры.</p>
+    </div>
+  </div>
+
+  <!-- Risk 2 -->
+  <div class="card" style="border-left: 4px solid var(--orange);">
+    <h3>&#x26A0;&#xFE0F; Риск #2 — Синхронизировать реальную физику</h3>
+    <div class="explain">
+      <div class="explain-header">Объяснение для новичков</div>
+      <p>
+        <strong>Что такое физический движок?</strong> Это программа, которая рассчитывает, как объекты двигаются: гравитация, столкновения, отскоки, трение. Как калькулятор для виртуального мира.
+      </p>
+      <p>
+        <strong>Почему физику нельзя синхронизировать?</strong> Физические движки используют числа с плавающей запятой (например, 3.14159265...). На разных компьютерах и в разных браузерах эти числа могут чуть-чуть отличаться на 15-м знаке после запятой. За 10 секунд симуляции эта микроскопическая разница нарастает как снежный ком. Результат: у одного игрока мяч улетел влево, у другого — вправо. Это называется <strong>десинхронизация</strong> — и починить её правильно стоит 40–100+ часов работы.
+      </p>
+      <p>
+        <strong>Решение:</strong> не использовать физический движок. Вместо этого — «фейковая физика» на анимациях. Подробнее в вопросе #3.
+      </p>
+    </div>
+  </div>
+
+  <!-- Risk 3 -->
+  <div class="card" style="border-left: 4px solid var(--orange);">
+    <h3>&#x26A0;&#xFE0F; Риск #3 — Over-engineering сетевого кода</h3>
+    <div class="explain">
+      <div class="explain-header">Объяснение для новичков</div>
+      <p>
+        <strong>Что такое lag compensation и rollback?</strong> Это сложнейшие техники для PvP-игр (игрок против игрока), где каждая миллисекунда важна. Они «перематывают время назад» на сервере, чтобы понять, попала ли пуля в цель, которая уже убежала. Это уровень сложности для студий с 10+ инженерами.
+      </p>
+      <p>
+        <strong>Нам это не нужно.</strong> Мы делаем PvE co-op — игроки вместе против окружения. Если враг принял урон на 80 мс позже — никто не заметит и не обидится. 50–100 мс задержки в PvE = абсолютно незаметно.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 3 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q3">
+  <div class="section-number">Вопрос 03 из 07</div>
+  <h2>Физика — кастомная или встроенная в движок?</h2>
+  <p class="section-lead">
+    Короткий ответ: ни то, ни другое. Мы будем фейковать физику анимациями — и это будет выглядеть ЛУЧШЕ, чем настоящая физика.
+  </p>
+
+  <div class="answer-box green">
+    <div class="answer-label">Решение</div>
+    <div class="answer-text">Фейковая физика на tweens + easing functions. Для коллизий — встроенная Arcade Physics от Phaser.</div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Что такое tweens и easing?</div>
+    <p>
+      <strong>Tween</strong> (от «between» — «между») — это анимация перемещения объекта из точки A в точку B за определённое время. Вместо того чтобы рассчитывать физику каждого кадра, мы просто говорим: «Двигай этот предмет отсюда туда за 0.6 секунды».
+    </p>
+    <p>
+      <strong>Easing</strong> — это «характер» анимации. Представьте, что вы бросаете мяч. Он не летит с постоянной скоростью — он замедляется в верхней точке и ускоряется при падении. Easing имитирует это:
+    </p>
+    <p>
+      &bull; <strong>bounceOut</strong> — объект «подпрыгивает» при приземлении (как мячик). Самый полезный для нас: создаёт иллюзию физики без физики.<br>
+      &bull; <strong>elasticOut</strong> — объект «пружинит» в конце (как резинка). Отлично для «удара» и «выстрела».<br>
+      &bull; <strong>easeOutQuad</strong> — плавное замедление. Для движения персонажей.<br>
+      &bull; <strong>easeInExpo</strong> — медленный старт, резкое ускорение. Для падения метеоритов.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Что видит игрок vs что происходит в коде</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Что видит игрок</th>
+          <th>Что реально происходит</th>
+          <th>Строки кода</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Взрыв разбрасывает лут во все стороны</td>
+          <td>Каждый предмет получает случайный угол и летит по tween с bounceOut</td>
+          <td>~10</td>
+        </tr>
+        <tr>
+          <td>Метеорит отбрасывает игрока назад</td>
+          <td>Вектор «от метеорита к игроку» × фиксированная сила + анимация «отката»</td>
+          <td>~5</td>
+        </tr>
+        <tr>
+          <td>Предметы кружатся в торнадо</td>
+          <td>Синусоидальное движение по кругу + вращение спрайта</td>
+          <td>~8</td>
+        </tr>
+        <tr>
+          <td>Обломки падают с неба</td>
+          <td>Спавн из предустановленных точек + tween вниз с easeInExpo</td>
+          <td>~6</td>
+        </tr>
+        <tr>
+          <td>Персонаж скользит по льду</td>
+          <td>Множитель инерции: position += velocity; velocity *= 0.95;</td>
+          <td>~3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Пример кода: «физика взрыва»</h3>
+
+  <div class="code-block">
+    <span class="lang">JavaScript</span>
+    <pre><span class="comment">// Вся «физика взрыва» — 12 строк кода</span>
+<span class="comment">// Выглядит как настоящая физика, но это анимация</span>
+
+<span class="keyword">function</span> <span class="func">fakeExplosion</span>(origin, items, radius) {
+  items.<span class="func">forEach</span>(item => {
+    <span class="comment">// Случайное направление для каждого предмета</span>
+    <span class="keyword">const</span> angle = Math.<span class="func">random</span>() * Math.PI * <span class="num">2</span>;
+    <span class="keyword">const</span> dist = radius * (<span class="num">0.5</span> + Math.<span class="func">random</span>() * <span class="num">0.5</span>);
+
+    <span class="comment">// Точка приземления</span>
+    <span class="keyword">const</span> targetX = origin.x + Math.<span class="func">cos</span>(angle) * dist;
+    <span class="keyword">const</span> targetY = origin.y + Math.<span class="func">sin</span>(angle) * dist;
+
+    <span class="comment">// Tween с bounceOut = выглядит как физика!</span>
+    <span class="func">tween</span>(item, {
+      x: targetX,
+      y: targetY,
+      rotation: Math.<span class="func">random</span>() * <span class="num">720</span> - <span class="num">360</span>  <span class="comment">// кручение в воздухе</span>
+    }, {
+      duration: <span class="num">600</span>,        <span class="comment">// 0.6 секунды</span>
+      ease: <span class="string">'bounceOut'</span>   <span class="comment">// ← вот что создаёт иллюзию</span>
+    });
+  });
+}</pre>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Почему это работает лучше настоящей физики</div>
+    <p>
+      <strong>1. Детерминизм.</strong> Tweens всегда работают одинаково на всех компьютерах. Нет проблемы десинхронизации. Хост говорит «взрыв в точке (200, 300) с seed=42» — все клиенты рисуют одинаковую анимацию.
+    </p>
+    <p>
+      <strong>2. Контроль.</strong> С физическим движком предмет может улететь за границу экрана, застрять в стене, провалиться сквозь пол. С tweens вы точно знаете, куда прилетит каждый объект.
+    </p>
+    <p>
+      <strong>3. Скорость разработки.</strong> Настройка физического движка = дни. Написать tween = минуты.
+    </p>
+    <p>
+      <strong>4. Производительность.</strong> Физический движок = тысячи расчётов каждый кадр. Tweens = простая интерполяция. Наш браузер скажет спасибо.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Кто ещё так делает?</h3>
+  <div class="grid-2">
+    <div class="mini-card green-b">
+      <h4>Vampire Survivors</h4>
+      <p>Тысячи предметов падают на экран — нулевая физика. Предметы просто появляются на позиции убитого врага и магнитом летят к игроку. Одна из самых продаваемых инди-игр.</p>
+    </div>
+    <div class="mini-card green-b">
+      <h4>Among Us</h4>
+      <p>Тела убитых не имеют физики — просто появляются на месте. Анимация выброса в космос = скриптовая кривая, а не симуляция гравитации. 500М+ скачиваний.</p>
+    </div>
+    <div class="mini-card green-b">
+      <h4>Lethal Company</h4>
+      <p>«Бросание» предметов = простая парабола (position = start + velocity × t + 0.5 × gravity × t²). Не физический движок. Предметы, попавшие на неровную поверхность, просто «привязываются» к ближайшей валидной точке.</p>
+    </div>
+    <div class="mini-card green-b">
+      <h4>Content Warning</h4>
+      <p>«Физика камеры» для found-footage эффекта = шум Перлина + пружинное демпфирование на камере. Это процедурная анимация, не rigid body симуляция.</p>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Для столкновений — Arcade Physics от Phaser</div>
+    <p>Нам всё-таки нужна простая проверка столкновений: «игрок дотронулся до предмета», «враг попал в игрока», «игрок в зоне катастрофы». Для этого есть встроенная Arcade Physics в Phaser — она работает с прямоугольниками и кругами, лёгкая, быстрая, детерминированная. Это не «физика» в полном смысле — скорее «проверка пересечений».</p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 4 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q4">
+  <div class="section-number">Вопрос 04 из 07</div>
+  <h2>Сколько систем реально могут работать одновременно?</h2>
+  <p class="section-lead">
+    При бюджете 16–24 часов разработки за 8 недель каждая система должна быть реализуемой за 2–6 часов. Если не помещается — система слишком сложная для MVP.
+  </p>
+
+  <div class="answer-box">
+    <div class="answer-label">Решение</div>
+    <div class="answer-text">5 систем, не больше. Каждая — минимально жизнеспособная версия.</div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Что такое «система» в игре?</div>
+    <p>
+      <strong>Система</strong> — это отдельный «механизм» игры, который работает независимо. Как двигатель, руль и тормоза в машине. В нашей игре таких механизмов 5:
+    </p>
+    <p>
+      &bull; <strong>Мультиплеер</strong> — связь между игроками (лобби, подключение, синхронизация)<br>
+      &bull; <strong>Катастрофы</strong> — метели, метеориты, молнии (когда начинаются, что делают, когда заканчиваются)<br>
+      &bull; <strong>Лут + мутации</strong> — предметы на карте, подбирание, превращения<br>
+      &bull; <strong>Враги</strong> — создания на карте, которые мешают игрокам<br>
+      &bull; <strong>Core loop</strong> — общий цикл: таймер → сбор → экстракция → результат
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Бюджет времени</h3>
+
+  <div style="margin: 1.5rem 0;">
+    <div class="budget-bar">
+      <span class="budget-bar-label">Мультиплеер</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill purple" style="width: 27%;">4–6 ч</div>
+      </div>
+    </div>
+    <div class="budget-bar">
+      <span class="budget-bar-label">Катастрофы (3–4 типа)</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill teal" style="width: 18%;">3–4 ч</div>
+      </div>
+    </div>
+    <div class="budget-bar">
+      <span class="budget-bar-label">Лут + мутации</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill warm" style="width: 14%;">2–3 ч</div>
+      </div>
+    </div>
+    <div class="budget-bar">
+      <span class="budget-bar-label">AI врагов</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill blue-g" style="width: 14%;">2–3 ч</div>
+      </div>
+    </div>
+    <div class="budget-bar">
+      <span class="budget-bar-label">Core loop</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill purple" style="width: 14%;">2–3 ч</div>
+      </div>
+    </div>
+    <div class="budget-bar">
+      <span class="budget-bar-label" style="color: var(--text-dim);">Баги + полировка</span>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill" style="width: 30%; background: var(--border-accent); color: var(--text-dim);">5–7 ч</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-item">
+      <div class="stat-value purple">13–19</div>
+      <div class="stat-label">часов на системы</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value teal">5–7</div>
+      <div class="stat-label">часов на полировку</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value orange">24</div>
+      <div class="stat-label">максимум часов</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Если не хватает времени — что резать первым?</div>
+    <p>Сократить до 2 типов катастроф (вместо 4), 1 арены (вместо 2–3) и 2 типов врагов. Core loop «зайди → собери → выживи → выберись» будет работать даже с минимальным контентом, если moment-to-moment геймплей приносит эмоции.</p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 5 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q5">
+  <div class="section-number">Вопрос 05 из 07</div>
+  <h2>Можно ли реализовать мутацию лута просто?</h2>
+  <p class="section-lead">
+    «Мутация лута» звучит как сложная система, где предметы реагируют на окружение. На самом деле это таблица из 60 строк.
+  </p>
+
+  <div class="answer-box green">
+    <div class="answer-label">Решение</div>
+    <div class="answer-text">Да. Lookup table + визуальные эффекты. 1–2 часа работы.</div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Что такое lookup table?</div>
+    <p>
+      <strong>Lookup table</strong> (таблица поиска) — это как словарь: «Если предмет X попал в катастрофу Y — он превращается в Z». Никаких расчётов, никаких формул, никакой «системы». Просто: посмотри в таблицу → замени предмет.
+    </p>
+    <p>
+      Это не «упрощение» — это <strong>стандартная практика</strong> в индустрии. Vampire Survivors (одна из самых успешных инди-игр, 150+ единиц оружия) использует точно такой же подход: каждая «эволюция» — это жёстко прописанная пара «предмет A + предмет B = предмет C». Ни одной процедурной мутации.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Вся «система мутаций» — один объект</h3>
+
+  <div class="code-block">
+    <span class="lang">JavaScript</span>
+    <pre><span class="comment">// ВСЯ система мутаций — это этот объект</span>
+<span class="comment">// 10–15 базовых предметов × 4 катастрофы = 40–60 записей</span>
+
+<span class="keyword">const</span> MUTATIONS = {
+
+  <span class="comment">// Ржавый меч</span>
+  <span class="string">"rusty_sword"</span>: {
+    lightning: <span class="string">"charged_sword"</span>,      <span class="comment">// Молния → электрический урон</span>
+    blizzard:  <span class="string">"frozen_blade"</span>,       <span class="comment">// Метель → замедляет врагов</span>
+    meteor:    <span class="string">"molten_edge"</span>,        <span class="comment">// Метеорит → огненный урон</span>
+    ice:       <span class="string">"crystal_saber"</span>       <span class="comment">// Лёд → крит. шанс</span>
+  },
+
+  <span class="comment">// Кожаный щит</span>
+  <span class="string">"leather_shield"</span>: {
+    lightning: <span class="string">"static_buckler"</span>,     <span class="comment">// Молния → отражает урон</span>
+    blizzard:  <span class="string">"frost_guard"</span>,        <span class="comment">// Метель → +защита от холода</span>
+    meteor:    <span class="string">"scorched_barrier"</span>,   <span class="comment">// Метеорит → огнеупорный</span>
+    ice:       <span class="string">"glacial_wall"</span>        <span class="comment">// Лёд → замораживает врагов</span>
+  },
+
+  <span class="comment">// Магнитный рюкзак</span>
+  <span class="string">"magnet_backpack"</span>: {
+    lightning: <span class="string">"tesla_pack"</span>,         <span class="comment">// Молния → собирает в 2× радиусе</span>
+    blizzard:  <span class="string">"cryo_container"</span>,     <span class="comment">// Метель → замораживает содержимое</span>
+    meteor:    <span class="string">"forge_satchel"</span>,      <span class="comment">// Метеорит → +2 слота</span>
+    ice:       <span class="string">"slippery_bag"</span>        <span class="comment">// Лёд → предметы иногда выпадают!</span>
+  }
+
+  <span class="comment">// ... ещё 7–12 предметов</span>
+};
+
+<span class="comment">// Вся функция мутации — 3 строки</span>
+<span class="keyword">function</span> <span class="func">mutateItem</span>(item, disaster) {
+  <span class="keyword">const</span> result = MUTATIONS[item.id]?.[disaster];
+  <span class="keyword">return</span> result ? <span class="func">createItem</span>(result) : item;  <span class="comment">// Нет записи = без изменений</span>
+}</pre>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Как превратить lookup в «момент»</h3>
+
+  <div class="explain">
+    <div class="explain-header">Слой иллюзии — 80% впечатления</div>
+    <p>
+      Таблица даёт нам правильный результат, но <strong>впечатление</strong> создаёт визуальная и звуковая обёртка. Вот что нужно добавить поверх lookup:
+    </p>
+    <p>
+      <strong>1. Свечение (0.5 сек).</strong> Когда предмет попадает в зону катастрофы, он начинает светиться белым, затем цветом катастрофы (синий для метели, оранжевый для метеорита, жёлтый для молнии). Это один CSS/sprite эффект.
+    </p>
+    <p>
+      <strong>2. Screen shake (0.3 сек).</strong> Экран слегка трясётся в момент мутации. Это 3 строки кода: camera.x += random(-3, 3), затухающее за 300 мс. Мощный «чувственный» эффект.
+    </p>
+    <p>
+      <strong>3. Частицы.</strong> Вспышка мелких частиц (10–20 штук) вокруг предмета. Phaser имеет встроенную систему частиц — настройка одного эффекта = 5 минут.
+    </p>
+    <p>
+      <strong>4. Звук.</strong> Короткий звуковой эффект (0.5–1 сек): электрический треск для молнии, хрустальный звон для льда, глухой удар для метеорита. Martin, это для тебя!
+    </p>
+    <p>
+      <strong>5. Замедление (0.1 сек).</strong> На 100 мс время замедляется (slow-motion). Это 1 строка: game.time.timeScale = 0.2, затем обратно к 1.0. Создаёт ощущение «веса» момента.
+    </p>
+    <p style="margin-top: 1rem;">
+      <strong>Итого:</strong> Table lookup (3 строки) + визуальная обёртка (~30 строк) = игрок думает, что видит сложную систему. На самом деле это словарь + 5 эффектов.
+    </p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 6 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q6">
+  <div class="section-number">Вопрос 06 из 07</div>
+  <h2>Что должно быть ФЕЙКОМ для MVP?</h2>
+  <p class="section-lead">
+    Золотое правило инди-разработки: игроки запоминают МОМЕНТЫ, а не СИСТЕМЫ. Вложите время в эмоциональный «juice» (тряска, вспышки, звуки), а не в глубину симуляции.
+  </p>
+
+  <div class="answer-box green">
+    <div class="answer-label">Решение</div>
+    <div class="answer-text">Почти всё. 6 из 7 «сложных систем» — это фейки с красивой обёрткой.</div>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Что значит «фейк» в игровой индустрии?</div>
+    <p>
+      <strong>Фейк</strong> — это не «халтура» и не «обман». Это стандартная практика, которой пользуются ВСЕ студии, от инди до AAA. Суть: вместо того чтобы строить сложную систему «по-настоящему», вы создаёте <strong>иллюзию</strong> этой системы, которая для игрока неотличима от реальной.
+    </p>
+    <p>
+      <strong>Пример из жизни:</strong> В кино не строят настоящие здания, чтобы их взорвать. Используют миниатюры, CGI, и практические эффекты. Зритель не может отличить. В играх — ровно так же.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Таблица фейков MYTE</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Фича</th>
+          <th>Кажется, что это</th>
+          <th>На самом деле</th>
+          <th>Часы</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Мутация лута</strong></td>
+          <td>Сложная система взаимодействий предмет ↔ стихия</td>
+          <td>Lookup table из 60 записей</td>
+          <td>1–2</td>
+        </tr>
+        <tr>
+          <td><strong>Катастрофы</strong></td>
+          <td>Симуляция погоды и стихий</td>
+          <td>Скриптовые таймлайны по 15 сек (последовательность эффектов)</td>
+          <td>3–4</td>
+        </tr>
+        <tr>
+          <td><strong>Физика хаоса</strong></td>
+          <td>Физический движок с гравитацией и столкновениями</td>
+          <td>Tweens с easing-функциями (bounceOut, elasticOut)</td>
+          <td>1–2</td>
+        </tr>
+        <tr>
+          <td><strong>AI врагов</strong></td>
+          <td>Умные создания с тактикой</td>
+          <td>3 состояния: бродить → гнаться → атаковать</td>
+          <td>2–3</td>
+        </tr>
+        <tr>
+          <td><strong>Карты</strong></td>
+          <td>Процедурная генерация уровней</td>
+          <td>2–3 ручных layout + случайные точки спавна</td>
+          <td>1–2</td>
+        </tr>
+        <tr>
+          <td><strong>Инвентарь</strong></td>
+          <td>Drag-and-drop сетка с весом и стакингом</td>
+          <td>2–3 фиксированных слота, клик = подобрать/выбросить</td>
+          <td>1</td>
+        </tr>
+        <tr>
+          <td><strong>Прогрессия</strong></td>
+          <td>Аккаунт, save/load, разблокировки</td>
+          <td>localStorage для «лучший счёт» (30 минут)</td>
+          <td>0.5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Detailed example: Disasters -->
+  <h3 style="margin: 2.5rem 0 1rem; color: var(--text-bright);">Подробный пример: как устроена «катастрофа»</h3>
+
+  <div class="explain">
+    <div class="explain-header">Скриптовый таймлайн вместо симуляции</div>
+    <p>
+      <strong>Что такое таймлайн?</strong> Это последовательность событий по времени, как сценарий фильма: «на 0 секунде — начни снег», «на 2 секунде — усиль снег», «на 5 секунде — создай ледяные пятна». Игра просто проигрывает этот сценарий, как плеер проигрывает музыку.
+    </p>
+    <p>
+      Никакой «симуляции атмосферного давления» или «расчёта скорости ветра». Просто: «В момент X покажи эффект Y».
+    </p>
+  </div>
+
+  <div class="code-block">
+    <span class="lang">JavaScript</span>
+    <pre><span class="comment">// Катастрофа «Метель» — скриптовый таймлайн</span>
+<span class="comment">// Каждая катастрофа — это такой объект-сценарий</span>
+
+<span class="keyword">const</span> BLIZZARD = {
+  duration: <span class="num">15000</span>,  <span class="comment">// 15 секунд</span>
+  timeline: [
+    <span class="comment">// Секунда 0: начинается лёгкий снег</span>
+    { at: <span class="num">0</span>,     action: <span class="string">"start_snow"</span>,          intensity: <span class="num">0.3</span> },
+    { at: <span class="num">0</span>,     action: <span class="string">"tint_screen_blue"</span>,     alpha: <span class="num">0.1</span> },
+    { at: <span class="num">0</span>,     action: <span class="string">"play_wind_sound"</span>,      volume: <span class="num">0.3</span> },
+
+    <span class="comment">// Секунда 2: снег усиливается, игроки замедляются</span>
+    { at: <span class="num">2000</span>,  action: <span class="string">"increase_snow"</span>,        intensity: <span class="num">0.8</span> },
+    { at: <span class="num">2000</span>,  action: <span class="string">"slow_players"</span>,         zones: [<span class="string">"center"</span>, <span class="string">"east"</span>] },
+
+    <span class="comment">// Секунда 5: появляются ледяные пятна + лут мутирует</span>
+    { at: <span class="num">5000</span>,  action: <span class="string">"spawn_ice_patches"</span>,    count: <span class="num">6</span> },
+    { at: <span class="num">5000</span>,  action: <span class="string">"mutate_exposed_loot"</span>,  disaster: <span class="string">"blizzard"</span> },
+
+    <span class="comment">// Секунда 8: тряска экрана — пик интенсивности</span>
+    { at: <span class="num">8000</span>,  action: <span class="string">"screen_shake"</span>,         intensity: <span class="num">0.3</span> },
+
+    <span class="comment">// Секунда 13: начинает стихать</span>
+    { at: <span class="num">13000</span>, action: <span class="string">"fade_effects"</span>,         duration: <span class="num">2000</span> },
+
+    <span class="comment">// Секунда 15: всё чисто</span>
+    { at: <span class="num">15000</span>, action: <span class="string">"clear_all"</span> }
+  ]
+};</pre>
+  </div>
+
+  <!-- Detailed example: Enemy AI -->
+  <h3 style="margin: 2.5rem 0 1rem; color: var(--text-bright);">Подробный пример: AI врагов</h3>
+
+  <div class="explain">
+    <div class="explain-header">3 состояния — это всё, что нужно</div>
+    <p>
+      <strong>Что такое стейт-машина?</strong> Враг в каждый момент находится в одном из трёх состояний: «брожу», «гонюсь» или «атакую». Переход между состояниями определяется простыми правилами: «если игрок рядом — гонись за ним», «если догнал — атакуй».
+    </p>
+    <p>
+      <strong>Bracken из Lethal Company</strong> — культовый монстр — имеет ровно два состояния: «следуй за игроком» и «убеги, если на тебя смотрят». Два состояния. Один из самых запоминающихся игровых врагов 2023 года. Простота = запоминаемость.
+    </p>
+    <p>
+      <strong>Враги Vampire Survivors</strong> ещё проще: единственное поведение = `двигайся к игроку`. Одна строка кода: <code>direction = normalize(playerPos - enemyPos)</code>. Это буквально ВСЁ. И это работает, потому что сложность создаёт количество врагов, а не их интеллект.
+    </p>
+  </div>
+
+  <div class="code-block">
+    <span class="lang">JavaScript</span>
+    <pre><span class="comment">// Весь AI врага — стейт-машина с 3 состояниями</span>
+
+<span class="keyword">function</span> <span class="func">updateEnemy</span>(enemy, players) {
+  <span class="keyword">const</span> nearest = <span class="func">findNearest</span>(enemy, players);
+  <span class="keyword">const</span> dist = <span class="func">distance</span>(enemy, nearest);
+
+  <span class="keyword">switch</span> (enemy.state) {
+
+    <span class="keyword">case</span> <span class="string">"WANDER"</span>:
+      <span class="comment">// Бродит в случайном направлении медленно</span>
+      <span class="func">moveToward</span>(enemy, enemy.wanderTarget, <span class="num">0.5</span>);
+      <span class="comment">// Если игрок близко — переключись на погоню</span>
+      <span class="keyword">if</span> (dist < <span class="num">200</span>) enemy.state = <span class="string">"CHASE"</span>;
+      <span class="keyword">break</span>;
+
+    <span class="keyword">case</span> <span class="string">"CHASE"</span>:
+      <span class="comment">// Бежит к ближайшему игроку</span>
+      <span class="func">moveToward</span>(enemy, nearest, <span class="num">2.0</span>);
+      <span class="comment">// Если догнал — атакуй</span>
+      <span class="keyword">if</span> (dist < <span class="num">30</span>) enemy.state = <span class="string">"ATTACK"</span>;
+      <span class="comment">// Если игрок убежал далеко — вернись к брожению</span>
+      <span class="keyword">if</span> (dist > <span class="num">400</span>) enemy.state = <span class="string">"WANDER"</span>;
+      <span class="keyword">break</span>;
+
+    <span class="keyword">case</span> <span class="string">"ATTACK"</span>:
+      <span class="comment">// Нанеси урон, подожди кулдаун, вернись к погоне</span>
+      <span class="func">dealDamage</span>(nearest, enemy.damage);
+      enemy.cooldown = <span class="num">1000</span>;  <span class="comment">// 1 сек между ударами</span>
+      enemy.state = <span class="string">"CHASE"</span>;
+      <span class="keyword">break</span>;
+  }
+}</pre>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Золотое правило постмортемов</div>
+    <p>Из анализа Lethal Company, Among Us, Vampire Survivors и Content Warning — одна и та же закономерность: <strong>инвестируйте время в «juice» (screen shake, particles, звуки, slow-motion), а не в глубину симуляции</strong>. Particle burst + screen shake + звук при мутации предмета создаёт БОЛЬШЕ эмоций, чем сложная симуляция без визуальной обёртки. Иллюзия — и есть продукт.</p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ВОПРОС 7 -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="q7">
+  <div class="section-number">Вопрос 07 из 07</div>
+  <h2>Какая фича тайно слишком дорогая?</h2>
+  <p class="section-lead">
+    Некоторые фичи кажутся простыми, но на практике могут сожрать весь бюджет в 16–24 часов целиком. Вот четыре главные ловушки.
+  </p>
+
+  <div class="answer-box warm">
+    <div class="answer-label" style="color: var(--red);">Предупреждение</div>
+    <div class="answer-text">4 фичи-ловушки. Каждая может поглотить 15–100 часов — при бюджете всего 16–24.</div>
+  </div>
+
+  <!-- Trap 1 -->
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h3>&#x1F4A3; Ловушка #1 — Синхронизация реальной физики</h3>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-value red">30–50+</div><div class="stat-label">часов разработки</div></div>
+      <div class="stat-item"><div class="stat-value red">2×</div><div class="stat-label">весь бюджет проекта</div></div>
+    </div>
+    <div class="explain">
+      <div class="explain-header">Почему это ловушка</div>
+      <p>
+        Физические движки (Box2D, Matter.js, PhysX) используют числа с плавающей запятой. На разных компьютерах и в разных браузерах (Chrome, Firefox, Safari) эти числа ведут себя чуть-чуть по-разному — на уровне 15-го знака после запятой.
+      </p>
+      <p>
+        За 10 секунд игры эта микроскопическая разница нарастает. У одного игрока мяч улетает влево, у другого — вправо. Это называется «десинхронизация». Чтобы это починить, нужны сложнейшие техники: детерминированная математика с фиксированной запятой, синхронизация random seed, хеширование состояний для проверки. Даже Box2D v3 (2024) в своей документации описывает огромные усилия, необходимые для кросс-платформенного детерминизма.
+      </p>
+      <p>
+        <strong>Решение:</strong> фейковая физика на tweens (см. вопрос #3). Tweens детерминированы по определению — они не используют плавающую запятую для симуляции.
+      </p>
+    </div>
+  </div>
+
+  <!-- Trap 2 -->
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h3>&#x1F4A3; Ловушка #2 — Сложная система инвентаря</h3>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-value red">15–25</div><div class="stat-label">часов разработки</div></div>
+      <div class="stat-item"><div class="stat-value red">1×</div><div class="stat-label">весь бюджет проекта</div></div>
+    </div>
+    <div class="explain">
+      <div class="explain-header">Почему это ловушка</div>
+      <p>
+        Drag-and-drop инвентарь кажется «ну, просто сетка, куда кидаешь предметы». На практике это: UI для перетаскивания (включая тач на мобильных), слоты разных размеров, стакинг одинаковых предметов, вес/ограничения, подсветка слотов при перетаскивании, сравнение предметов, тултипы, сортировка, И — всё это нужно синхронизировать по сети (чтобы другие игроки видели, что у вас в руках).
+      </p>
+      <p>
+        <strong>Как делают хитовые инди-игры?</strong>
+      </p>
+      <p>
+        &bull; <strong>Lethal Company:</strong> один предмет в руках. Всё. Нажал E — подобрал, нажал G — бросил. Никакого инвентаря.<br>
+        &bull; <strong>Content Warning:</strong> один предмет в руках. Точно так же.<br>
+        &bull; <strong>Vampire Survivors:</strong> инвентарь вообще отсутствует. Предметы подбираются автоматически и действуют вечно.
+      </p>
+      <p>
+        <strong>Решение для MYTE:</strong> 2–3 фиксированных слота. Нажал — подобрал. Нажал — выбросил. Старый предмет выпадает на землю. Никакого drag-and-drop. Вся «система» = 1 час работы.
+      </p>
+    </div>
+  </div>
+
+  <!-- Trap 3 -->
+  <div class="card" style="border-left: 4px solid var(--red);">
+    <h3>&#x1F4A3; Ловушка #3 — Lag compensation / Rollback netcode</h3>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-value red">40–100+</div><div class="stat-label">часов разработки</div></div>
+      <div class="stat-item"><div class="stat-value red">4×</div><div class="stat-label">весь бюджет проекта</div></div>
+    </div>
+    <div class="explain">
+      <div class="explain-header">Почему это ловушка</div>
+      <p>
+        <strong>Что такое lag compensation?</strong> Представьте: игрок 1 стреляет во врага, который на его экране находится в точке A. Но из-за задержки сети враг на самом деле уже в точке B (убежал). Lag compensation «перематывает время назад» на сервере, чтобы проверить: «А где был враг 80 мс назад, когда игрок стрелял?» Для этого сервер хранит историю всех позиций за последние несколько секунд.
+      </p>
+      <p>
+        <strong>Что такое rollback?</strong> Ещё сложнее: каждый клиент предсказывает будущее (чтобы не ждать сервер), а когда получает настоящие данные от сервера — «перематывает» и пересчитывает всё заново. Это как отменить последние 5 ходов в шахматах и переиграть.
+      </p>
+      <p>
+        <strong>Кому это нужно?</strong> Конкурентным PvP-играм: Counter-Strike, Valorant, Street Fighter. Когда игрок A стреляет в игрока B и 50 мс решают исход — каждый кадр на счету.
+      </p>
+      <p>
+        <strong>Нам это НЕ нужно.</strong> Мы делаем co-op PvE. Все игроки в одной команде. Если враг получил урон на 80 мс позже — никто не заметит. Lethal Company не имеет lag compensation и продался миллионами копий.
+      </p>
+    </div>
+  </div>
+
+  <!-- Trap 4 -->
+  <div class="card" style="border-left: 4px solid var(--orange);">
+    <h3>&#x26A0;&#xFE0F; Ловушка #4 — Процедурная генерация карт</h3>
+    <div class="stat-row">
+      <div class="stat-item"><div class="stat-value orange">20–40+</div><div class="stat-label">часов разработки</div></div>
+      <div class="stat-item"><div class="stat-value orange">1.5×</div><div class="stat-label">весь бюджет проекта</div></div>
+    </div>
+    <div class="explain">
+      <div class="explain-header">Почему это ловушка</div>
+      <p>
+        <strong>Что такое процедурная генерация?</strong> Это когда компьютер сам «придумывает» уровень каждый раз заново. Звучит идеально: бесконечное разнообразие! На практике: 20–40 часов на алгоритм + бесконечное тестирование edge cases (непроходимые коридоры, пустые комнаты, сломанная логика).
+      </p>
+      <p>
+        <strong>Lethal Company</strong> использует не настоящую процедурную генерацию, а <strong>комбинацию готовых модулей</strong>. Дизайнеры вручную создали ~20 комнат, а алгоритм просто перемешивает, в каком порядке они соединяются. Комнаты сами по себе — ручная работа.
+      </p>
+      <p>
+        <strong>Решение для MYTE:</strong> 2–3 ручных layout арены. Рандомизируются: точки спавна лута, последовательность катастроф, типы врагов. Игроки не заметят повтора первые 20–30 сессий, а к тому моменту мы уже сделаем больше контента.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- СТЕК -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="stack">
+  <div class="section-number">Приложение A</div>
+  <h2>Выбор технологического стека</h2>
+  <p class="section-lead">
+    Сравнение всех рассмотренных вариантов с конкретными цифрами. Исследование проведено в феврале 2026, данные актуальны.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Параметр</th>
+          <th style="color: var(--green);">Phaser + Colyseus</th>
+          <th>Godot + Nakama</th>
+          <th>PlayCanvas + WS</th>
+          <th>Unity + Photon</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Размер бандла</td>
+          <td><strong style="color: var(--green);">~200 КБ</strong></td>
+          <td>10–50 МБ</td>
+          <td>1–3 МБ</td>
+          <td>10–40 МБ</td>
+        </tr>
+        <tr>
+          <td>Загрузка</td>
+          <td><strong style="color: var(--green);">&lt;1 сек</strong></td>
+          <td>3–15 сек</td>
+          <td>1–3 сек</td>
+          <td>5–30 сек</td>
+        </tr>
+        <tr>
+          <td>Время до MVP</td>
+          <td><strong style="color: var(--green);">2–4 недели</strong></td>
+          <td>8–16 недель</td>
+          <td>4–8 недель</td>
+          <td>10–20 недель</td>
+        </tr>
+        <tr>
+          <td>Стоимость сервера</td>
+          <td><strong style="color: var(--green);">$0–5/мес</strong></td>
+          <td>$5–25/мес</td>
+          <td>$0–5/мес</td>
+          <td>$0–10/мес</td>
+        </tr>
+        <tr>
+          <td>Язык</td>
+          <td><strong>TypeScript</strong></td>
+          <td>GDScript</td>
+          <td>JavaScript</td>
+          <td>C#</td>
+        </tr>
+        <tr>
+          <td>Браузерный</td>
+          <td><span class="tag green">Да, нативно</span></td>
+          <td><span class="tag red">Нет (WASM экспорт)</span></td>
+          <td><span class="tag green">Да</span></td>
+          <td><span class="tag red">Нет (WASM экспорт)</span></td>
+        </tr>
+        <tr>
+          <td>Мультиплеер</td>
+          <td><span class="tag green">Встроен в Colyseus</span></td>
+          <td><span class="tag orange">Nakama — сложный</span></td>
+          <td><span class="tag orange">Ручная работа</span></td>
+          <td><span class="tag orange">Photon — cloud-only</span></td>
+        </tr>
+        <tr>
+          <td>Текущая версия</td>
+          <td>Phaser 4 RC6 + Colyseus 0.17</td>
+          <td>Godot 4.4 + Nakama latest</td>
+          <td>PlayCanvas latest</td>
+          <td>Unity 6.3 LTS</td>
+        </tr>
+        <tr>
+          <td>Сообщество (GitHub)</td>
+          <td>39K + 6.7K stars</td>
+          <td>93K + 8K stars</td>
+          <td>9K stars</td>
+          <td>Закрытый код</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="explain">
+    <div class="explain-header">Почему Phaser + Colyseus — лучший выбор</div>
+    <p>
+      <strong>1. Один язык.</strong> TypeScript и на клиенте, и на сервере. Не нужно переключаться между GDScript/C# (серверная часть) и JavaScript (клиент). Одна ментальная модель, один набор навыков.
+    </p>
+    <p>
+      <strong>2. Мгновенная загрузка.</strong> 200 КБ загружаются менее чем за секунду. Игрок нажал ссылку — и уже играет. Для вирального распространения (отправил ссылку другу) это критически важно.
+    </p>
+    <p>
+      <strong>3. Colyseus 0.17 — это прорыв.</strong> Вышел 6 февраля 2026. Автоматическое переподключение, type-safe TypeScript от клиента до сервера, встроенный дебаг-инспектор, QueueRoom для матчмейкинга. Всё это бесплатно.
+    </p>
+    <p>
+      <strong>4. Zero-config хостинг.</strong> Клиент — на Vercel/Netlify (бесплатно, CDN по всему миру). Сервер — на Fly.io ($0–5/мес, автомасштабирование, глобальные edge locations).
+    </p>
+    <p>
+      <strong>5. Готовый туториал.</strong> Colyseus имеет пошаговый туториал «Phaser + Colyseus»: от нуля до мультиплеерной игры за 4 шага. Это наш стартовый шаблон.
+    </p>
+  </div>
+
+  <h3 style="margin: 2rem 0 1rem; color: var(--text-bright);">Альтернатива для быстрого прототипа: Playroom Kit</h3>
+
+  <div class="card">
+    <h3>Playroom Kit + Phaser</h3>
+    <p>Если нужно показать прототип как можно быстрее (например, на следующей встрече), можно использовать <strong>Playroom Kit</strong> — это управляемый backend для мультиплеерных игр, где вообще не нужно писать серверный код.</p>
+
+    <div class="code-block">
+      <span class="lang">JavaScript</span>
+      <pre><span class="comment">// Весь мультиплеер — 3 строки</span>
+<span class="keyword">import</span> { getState, setState } <span class="keyword">from</span> <span class="string">'playroomkit'</span>;
+
+<span class="keyword">await</span> <span class="func">insertCoin</span>();   <span class="comment">// Создаёт лобби, комнату, подключает игроков</span>
+<span class="func">setState</span>(<span class="string">"score"</span>, <span class="num">10</span>);  <span class="comment">// Синхронизируется у всех игроков автоматически</span></pre>
+    </div>
+
+    <p style="color: var(--text-dim); font-size: 0.9rem;">Цена: $10/мес (Starter, до 15K MAU). Бесплатно для инди-студентов. Ограничение: client-authoritative (хост-модель), меньше контроля. Хорошо для прототипа, но для продакшена лучше Colyseus.</p>
+  </div>
+</section>
+
+<!-- =========================================== -->
+<!-- ИТОГ -->
+<!-- =========================================== -->
+<hr class="divider">
+<section class="section" id="summary">
+  <div class="section-number">Резюме</div>
+  <h2>Все 7 решений на одной странице</h2>
+  <p class="section-lead">
+    Краткая сводка для быстрого обзора во время встречи.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Вопрос</th>
+          <th>Решение</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>Простейшая мультиплеерная архитектура?</td>
+          <td><strong>Host-based через relay.</strong> Phaser + Colyseus. Один игрок = хост, сервер = почтальон. Стоимость: $0–5/мес.</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>Что может убить таймлайн?</td>
+          <td><strong>Выбор движка.</strong> Godot/Unity для веба = смерть (10–50 МБ бандл). Phaser = 200 КБ. Также опасны: реальная физика и over-engineering сети.</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>Физика — custom или default?</td>
+          <td><strong>Ни то, ни другое. Фейк.</strong> Tweens + easing functions. bounceOut для «физики», Arcade Physics для коллизий.</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>Сколько систем реально?</td>
+          <td><strong>5 систем.</strong> Мультиплеер (4–6ч), катастрофы (3–4ч), лут (2–3ч), AI (2–3ч), core loop (2–3ч). Остаток на баги.</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>Мутация лута — просто?</td>
+          <td><strong>Да. Lookup table из 60 записей.</strong> 1–2 часа. Вау-эффект создают визуальные эффекты (свечение, тряска, звук), а не сложная логика.</td>
+        </tr>
+        <tr>
+          <td><strong>6</strong></td>
+          <td>Что фейковать?</td>
+          <td><strong>Почти всё.</strong> Мутации (table), катастрофы (скрипты), физику (tweens), AI (3 состояния), карты (ручные), инвентарь (2–3 слота), прогрессию (localStorage).</td>
+        </tr>
+        <tr>
+          <td><strong>7</strong></td>
+          <td>Что тайно дорогое?</td>
+          <td><strong>4 ловушки:</strong> синхро физики (30–50ч), сложный инвентарь (15–25ч), rollback netcode (40–100ч), процедурная генерация (20–40ч).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top: 3rem;">
+    <div class="callout-title">Главный принцип</div>
+    <p style="font-size: 1.1rem; line-height: 1.8;">
+      Игроки запоминают <strong>моменты</strong>, а не <strong>системы</strong>. Lookup table с particle burst + screen shake + звуком при мутации создаёт больше эмоций, чем сложная симуляция без «juice». Инвестируйте время в то, что чувствуется, а не в то, что рассчитывается.
+    </p>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>MYTE Studio &mdash; Встреча 18 февраля 2026, 20:00</p>
+  <p style="margin-top: 0.5rem; opacity: 0.5;">Yakov Vasiliev &middot; Executive Producer / Tech</p>
+</footer>
+
+</body>
+</html>
