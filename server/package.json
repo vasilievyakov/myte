@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "ts-node-dev --respawn src/index.ts",
+    "start": "ts-node-dev --respawn --tree-kill --debounce 1000 src/index.ts",
     "build": "tsc"
   },
   "dependencies": {
