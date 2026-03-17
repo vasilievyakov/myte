@@ -99,6 +99,33 @@ export class GameScene extends Phaser.Scene {
   // Zone tracking
   private wasInDangerZone = false;
 
+  // HUD extras (#16, #21)
+  private hpBarBg!: Phaser.GameObjects.Rectangle;
+  private hpBarFill!: Phaser.GameObjects.Rectangle;
+  private hpText!: Phaser.GameObjects.Text;
+  private killsText!: Phaser.GameObjects.Text;
+
+  // Kill feed (#17)
+  private feedMessages: Phaser.GameObjects.Text[] = [];
+
+  // Low HP warning (#20)
+  private lowHpOverlay!: Phaser.GameObjects.Graphics;
+
+  // Sprint (#23)
+  private sprintKey!: Phaser.Input.Keyboard.Key;
+  private stamina = 100;
+  private staminaBarBg!: Phaser.GameObjects.Rectangle;
+  private staminaBarFill!: Phaser.GameObjects.Rectangle;
+  private isSprinting = false;
+
+  // Extraction pulse (#22)
+  private extractionGfx: Phaser.GameObjects.Graphics | null = null;
+  private extractionPulseTimer = 0;
+
+  // Player trails (#27)
+  private trailGfx!: Phaser.GameObjects.Graphics;
+  private trailPoints = new Map<string, { x: number; y: number; alpha: number }[]>();
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -129,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.extractKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.attackKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     this.useKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+    this.sprintKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
     this.createHUD();
     this.connectToServer();
@@ -179,8 +207,8 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100).setVisible(false);
 
     // Controls hint (bottom-left)
-    this.add.text(12, h - 24, "[F] Attack   [Q] Use Utility   [E] Pick up   [SPACE] Extract", {
-      fontSize: "12px", color: "#445566", fontFamily: "monospace",
+    this.add.text(12, h - 24, "[F] Attack  [Q] Use  [E] Pick up  [SHIFT] Sprint  [SPACE] Extract", {
+      fontSize: "11px", color: "#445566", fontFamily: "monospace",
     }).setScrollFactor(0).setDepth(100);
 
     // Minimap (top-left corner)
@@ -196,6 +224,37 @@ export class GameScene extends Phaser.Scene {
     this.add.text(mmX + mmSize / 2, mmY + mmSize + 4, "MAP", {
       fontSize: "10px", color: "#444466", fontFamily: "monospace",
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(101);
+
+    // HP bar in HUD (#16)
+    const hpX = w - 220;
+    const hpY = 16;
+    this.add.text(hpX - 4, hpY + 6, "HP", {
+      fontSize: "12px", color: "#ff4444", fontFamily: "monospace", fontStyle: "bold",
+    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(101);
+    this.hpBarBg = this.add.rectangle(hpX + 80, hpY + 6, 160, 14, 0x333333, 0.8)
+      .setScrollFactor(0).setDepth(100);
+    this.hpBarFill = this.add.rectangle(hpX, hpY + 6, 160, 14, 0x33ff33, 1)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
+    this.hpText = this.add.text(hpX + 80, hpY + 6, "100/100", {
+      fontSize: "11px", color: "#ffffff", fontFamily: "monospace",
+    }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(102);
+
+    // Kill counter (#21)
+    this.killsText = this.add.text(w - 40, hpY + 28, "0 kills", {
+      fontSize: "13px", color: "#ff8800", fontFamily: "monospace",
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(101);
+
+    // Stamina bar (#23)
+    this.staminaBarBg = this.add.rectangle(hpX + 80, hpY + 24, 160, 6, 0x333333, 0.6)
+      .setScrollFactor(0).setDepth(100);
+    this.staminaBarFill = this.add.rectangle(hpX, hpY + 24, 160, 6, 0x44aaff, 0.8)
+      .setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
+
+    // Low HP warning overlay (#20)
+    this.lowHpOverlay = this.add.graphics().setScrollFactor(0).setDepth(99);
+
+    // Trail graphics (#27)
+    this.trailGfx = this.add.graphics().setDepth(8);
   }
 
   // ========== CONNECTION ==========
@@ -245,8 +304,8 @@ export class GameScene extends Phaser.Scene {
           $.listen(player, "armorId", (val: string) => this.updateHUDSlot(1, val));
           $.listen(player, "utilityId", (val: string) => this.updateHUDSlot(2, val));
           $.listen(player, "isDead", (val: boolean) => {
-            if (val) { this.showDeathOverlay(); this.playSfx("death"); }
-            else this.hideDeathOverlay();
+            if (val) { this.showDeathOverlay(); this.playSfx("death"); this.addFeedMessage("You died!", "#ff4444"); }
+            else { this.hideDeathOverlay(); this.addFeedMessage("Respawned!", "#44ff44"); }
           });
           $.listen(player, "attackSeq", () => {
             const s = this.playerSprites.get(this.localSessionId);
@@ -306,12 +365,17 @@ export class GameScene extends Phaser.Scene {
             s.targetY = enemy.y;
             s.aiState = enemy.aiState;
             s.facing = enemy.facing;
+            // Damage numbers on enemies (#19)
+            const oldEnemyHp = s.hp;
             s.hp = enemy.hp;
             s.maxHp = enemy.maxHp;
+            if (enemy.hp < oldEnemyHp && oldEnemyHp - enemy.hp >= 1) {
+              this.spawnFloatingText(s.prevX + (Math.random() - 0.5) * 20, s.prevY - 20, `-${Math.round(oldEnemyHp - enemy.hp)}`, "#ffaa00");
+            }
             if (enemy.isDead && !s.isDead) {
-              // Enemy just died — flash
               s.isDead = true;
               this.spawnFloatingText(s.prevX, s.prevY - 10, "DEAD", "#ff8800");
+              this.addFeedMessage(`${enemy.enemyType} killed!`, "#ff8800");
             }
             s.isDead = enemy.isDead;
           }
@@ -519,15 +583,27 @@ export class GameScene extends Phaser.Scene {
   private drawItemIcon(gfx: Phaser.GameObjects.Graphics, x: number, y: number, item: any) {
     gfx.clear();
 
-    // Glow for rare/uncommon
+    // Glow for rare/uncommon (#25 — enhanced visibility)
     if (item.rarity === "rare") {
+      // Outer glow
+      gfx.fillStyle(0xffd700, 0.08);
+      gfx.fillCircle(x, y, 28);
+      // Mid glow
       gfx.fillStyle(0xffd700, 0.15);
-      gfx.fillCircle(x, y, 18);
-      gfx.lineStyle(1.5, 0xffd700, 0.5);
+      gfx.fillCircle(x, y, 20);
+      // Inner ring
+      gfx.lineStyle(2, 0xffd700, 0.6);
       gfx.strokeCircle(x, y, 18);
+      // Light beam (vertical line above item)
+      gfx.fillStyle(0xffd700, 0.12);
+      gfx.fillRect(x - 1.5, y - 40, 3, 25);
     } else if (item.rarity === "uncommon") {
-      gfx.fillStyle(0x00ccff, 0.1);
+      gfx.fillStyle(0x00ccff, 0.08);
+      gfx.fillCircle(x, y, 22);
+      gfx.fillStyle(0x00ccff, 0.15);
       gfx.fillCircle(x, y, 16);
+      gfx.lineStyle(1, 0x00ccff, 0.3);
+      gfx.strokeCircle(x, y, 16);
     }
 
     const defId = item.defId || "";
@@ -967,38 +1043,80 @@ export class GameScene extends Phaser.Scene {
 
   private spawnAttackVFX(x: number, y: number) {
     const gfx = this.add.graphics().setDepth(50);
+    // Check if player has weapon for range indicator (#24)
+    const state = this.room?.state as any;
+    const localPlayer = state?.players?.get(this.localSessionId);
+    const hasWeapon = localPlayer?.weaponId;
+    const range = hasWeapon ? 60 : 40;
+
+    // Range circle
+    gfx.lineStyle(1, 0xffffff, 0.2);
+    gfx.strokeCircle(x, y, range);
+    // Attack arc
     gfx.lineStyle(3, 0xffffff, 0.8);
     gfx.beginPath();
-    gfx.arc(x, y, 30, -Math.PI * 0.3, Math.PI * 0.3, false);
+    gfx.arc(x, y, range * 0.7, -Math.PI * 0.4, Math.PI * 0.4, false);
     gfx.strokePath();
+    // Slash lines
+    for (let i = 0; i < 3; i++) {
+      const angle = -0.3 + i * 0.3;
+      gfx.lineStyle(2, 0xffffff, 0.6 - i * 0.15);
+      gfx.strokeLineShape(new Phaser.Geom.Line(
+        x + Math.cos(angle) * 15, y + Math.sin(angle) * 15,
+        x + Math.cos(angle) * range * 0.8, y + Math.sin(angle) * range * 0.8
+      ));
+    }
     this.tweens.add({
-      targets: gfx, alpha: 0, duration: 200,
+      targets: gfx, alpha: 0, duration: 250,
       onComplete: () => gfx.destroy(),
     });
   }
 
-  // ========== EXTRACTION ZONE ==========
+  // ========== EXTRACTION ZONE (#22) ==========
+
+  private extractX = 0;
+  private extractY = 0;
+  private extractRadius = 0;
 
   private drawExtractionZone(x: number, y: number, radius: number) {
-    const gfx = this.add.graphics().setDepth(3);
-    // Pulsing green
-    gfx.fillStyle(0x00ff66, 0.06);
-    gfx.fillCircle(x, y, radius);
-    gfx.lineStyle(3, 0x00ff66, 0.6);
-    gfx.strokeCircle(x, y, radius);
-    // Inner dashed feel
-    gfx.lineStyle(1, 0x00ff66, 0.3);
-    gfx.strokeCircle(x, y, radius - 8);
-
-    // Arrow pointing down
-    const arrowY = y - 20;
-    gfx.fillStyle(0x00ff66, 0.8);
-    gfx.fillTriangle(x - 8, arrowY - 8, x + 8, arrowY - 8, x, arrowY + 4);
+    this.extractX = x;
+    this.extractY = y;
+    this.extractRadius = radius;
+    this.extractionGfx = this.add.graphics().setDepth(3);
 
     this.add.text(x, y - radius - 14, "EXTRACTION", {
       fontSize: "14px", color: "#00ff66", fontStyle: "bold",
       stroke: "#001100", strokeThickness: 2,
     }).setOrigin(0.5, 1).setDepth(4);
+  }
+
+  private updateExtractionPulse(delta: number) {
+    if (!this.extractionGfx) return;
+    this.extractionPulseTimer += delta * 0.003;
+    const gfx = this.extractionGfx;
+    gfx.clear();
+
+    const pulse = 0.5 + Math.sin(this.extractionPulseTimer) * 0.3;
+    const x = this.extractX;
+    const y = this.extractY;
+    const r = this.extractRadius;
+
+    // Outer ring pulse
+    gfx.fillStyle(0x00ff66, 0.04 + pulse * 0.04);
+    gfx.fillCircle(x, y, r);
+    gfx.lineStyle(2 + pulse, 0x00ff66, 0.4 + pulse * 0.3);
+    gfx.strokeCircle(x, y, r);
+    // Inner ring
+    gfx.lineStyle(1, 0x00ff66, 0.2 + pulse * 0.15);
+    gfx.strokeCircle(x, y, r - 8);
+    // Expanding ring effect
+    const expandR = r * (0.5 + (this.extractionPulseTimer % 2) / 2);
+    gfx.lineStyle(1, 0x00ff66, Math.max(0, 0.4 - (expandR / r) * 0.4));
+    gfx.strokeCircle(x, y, expandR);
+    // Arrow
+    const arrowY = y - 20;
+    gfx.fillStyle(0x00ff66, 0.5 + pulse * 0.3);
+    gfx.fillTriangle(x - 8, arrowY - 8, x + 8, arrowY - 8, x, arrowY + 4);
   }
 
   // ========== HUD ==========
@@ -1023,6 +1141,7 @@ export class GameScene extends Phaser.Scene {
       // Rare item pickup celebration (#13)
       if (item.rarity === "rare") {
         this.spawnRarePickupVFX();
+        this.addFeedMessage(`Found: ${item.name}!`, "#ffd700");
       }
 
       // Mini icon in HUD
@@ -1340,6 +1459,16 @@ export class GameScene extends Phaser.Scene {
       this.playSfx("pickup");
     }
 
+    // Sprint (#23)
+    const wantSprint = this.sprintKey.isDown && (dx !== 0 || dy !== 0);
+    if (wantSprint && this.stamina > 0) {
+      this.stamina = Math.max(0, this.stamina - delta * 0.03);
+      if (!this.isSprinting) { this.isSprinting = true; this.room.send("sprint", { active: true }); }
+    } else {
+      this.stamina = Math.min(100, this.stamina + delta * 0.015);
+      if (this.isSprinting) { this.isSprinting = false; this.room.send("sprint", { active: false }); }
+    }
+
     // Animate players
     this.playerSprites.forEach((s) => {
       const oldX = s.gfx.x || 0;
@@ -1455,6 +1584,9 @@ export class GameScene extends Phaser.Scene {
     this.updateMinimap();
     this.updateProximityHints();
     this.checkDangerZone();
+    this.updateHUDExtras();
+    this.updateTrails();
+    this.updateExtractionPulse(delta);
   }
 
   private updateMinimap() {
@@ -1521,6 +1653,100 @@ export class GameScene extends Phaser.Scene {
       if (isLocal) {
         this.minimapGfx.lineStyle(1, 0xffffff, 0.6);
         this.minimapGfx.strokeCircle(mmX + player.x * scaleX, mmY + player.y * scaleY, 5);
+      }
+    });
+  }
+
+  // ========== KILL FEED (#17) ==========
+
+  private addFeedMessage(msg: string, color: string) {
+    const w = this.scale.width;
+    const t = this.add.text(w - 12, 60, msg, {
+      fontSize: "13px", color, fontFamily: "monospace",
+      stroke: "#000000", strokeThickness: 2,
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(110);
+    this.feedMessages.push(t);
+    // Slide existing messages down
+    for (let i = this.feedMessages.length - 2; i >= 0; i--) {
+      this.feedMessages[i].y += 20;
+    }
+    // Fade out after 4 seconds
+    this.tweens.add({
+      targets: t, alpha: 0, duration: 1000, delay: 3000,
+      onComplete: () => {
+        t.destroy();
+        const idx = this.feedMessages.indexOf(t);
+        if (idx >= 0) this.feedMessages.splice(idx, 1);
+      },
+    });
+    // Keep max 6
+    while (this.feedMessages.length > 6) {
+      const old = this.feedMessages.shift();
+      old?.destroy();
+    }
+  }
+
+  // ========== HUD UPDATES (#16, #20, #21, #23) ==========
+
+  private updateHUDExtras() {
+    if (!this.room?.state) return;
+    const state = this.room.state as any;
+    const localPlayer = state.players?.get(this.localSessionId);
+    if (!localPlayer) return;
+
+    // HP bar (#16)
+    const hp = localPlayer.hp ?? 100;
+    const maxHp = localPlayer.maxHp ?? 100;
+    const hpRatio = maxHp > 0 ? Math.max(0, hp / maxHp) : 1;
+    this.hpBarFill?.setDisplaySize(160 * hpRatio, 14);
+    if (hpRatio > 0.6) this.hpBarFill?.setFillStyle(0x33ff33, 1);
+    else if (hpRatio > 0.3) this.hpBarFill?.setFillStyle(0xffcc00, 1);
+    else this.hpBarFill?.setFillStyle(0xff3333, 1);
+    this.hpText?.setText(`${Math.round(hp)}/${Math.round(maxHp)}`);
+
+    // Kill counter (#21)
+    const kills = localPlayer.kills ?? 0;
+    this.killsText?.setText(`${kills} kill${kills !== 1 ? "s" : ""}`);
+
+    // Low HP warning (#20)
+    this.lowHpOverlay?.clear();
+    if (hpRatio < 0.3 && hpRatio > 0) {
+      const w = this.scale.width;
+      const h = this.scale.height;
+      const intensity = 0.15 + Math.sin(Date.now() * 0.005) * 0.08;
+      this.lowHpOverlay?.fillStyle(0xff0000, intensity);
+      // Vignette edges
+      this.lowHpOverlay?.fillRect(0, 0, w, 30);
+      this.lowHpOverlay?.fillRect(0, h - 30, w, 30);
+      this.lowHpOverlay?.fillRect(0, 0, 30, h);
+      this.lowHpOverlay?.fillRect(w - 30, 0, 30, h);
+    }
+
+    // Stamina bar (#23)
+    this.staminaBarFill?.setDisplaySize(160 * (this.stamina / 100), 6);
+    if (this.stamina < 30) this.staminaBarFill?.setFillStyle(0xff4444, 0.8);
+    else this.staminaBarFill?.setFillStyle(0x44aaff, 0.8);
+  }
+
+  // ========== PLAYER TRAILS (#27) ==========
+
+  private updateTrails() {
+    this.trailGfx?.clear();
+    this.playerSprites.forEach((s, sid) => {
+      if (s.isDead) return;
+      let trail = this.trailPoints.get(sid);
+      if (!trail) { trail = []; this.trailPoints.set(sid, trail); }
+      // Add current position
+      trail.push({ x: s.prevX + 16, y: s.prevY + 20, alpha: 0.4 });
+      // Fade and trim
+      for (let i = trail.length - 1; i >= 0; i--) {
+        trail[i].alpha -= 0.02;
+        if (trail[i].alpha <= 0) { trail.splice(i, 1); }
+      }
+      // Draw
+      for (const p of trail) {
+        this.trailGfx?.fillStyle(s.color, p.alpha * 0.5);
+        this.trailGfx?.fillCircle(p.x, p.y, 3);
       }
     });
   }

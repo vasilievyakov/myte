@@ -54,6 +54,24 @@ export class LobbyScene extends Phaser.Scene {
     this.readyBtn.setVisible(false);
     this.readyBtnText.setVisible(false);
 
+    // Instructions for new players (#26)
+    const instructions = [
+      "WASD / Arrows — Move",
+      "E — Pick up items",
+      "F — Attack enemies",
+      "Q — Use utility item",
+      "SHIFT — Sprint",
+      "SPACE — Extract (in extraction zone)",
+      "",
+      "Goal: Collect loot, survive, extract!",
+    ];
+    instructions.forEach((line, i) => {
+      this.add.text(w / 2, h - 260 + i * 18, line, {
+        fontSize: "13px", color: line === "" ? "#000000" : (i < 6 ? "#555577" : "#888899"),
+        fontFamily: "monospace",
+      }).setOrigin(0.5);
+    });
+
     this.connectToServer();
   }
 

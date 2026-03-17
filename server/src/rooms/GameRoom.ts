@@ -263,6 +263,17 @@ export class GameRoom extends Room<{ state: GameState }> {
       }
     });
 
+    // Sprint handler (#23)
+    this.onMessage("sprint", (client: Client, data: { active: boolean }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || player.extracted || player.isDead) return;
+      if (data.active) {
+        player.speedMultiplier = Math.max(player.speedMultiplier, 1.6);
+      } else {
+        player.speedMultiplier = 1.0;
+      }
+    });
+
     // --- Simulation loop ---
 
     this.setSimulationInterval((deltaTime) => {
@@ -471,6 +482,26 @@ export class GameRoom extends Room<{ state: GameState }> {
     const pool = enemy.enemyType === "guardian" ? DANGER_ZONE_POOL : MEDIUM_ZONE_POOL;
     const defId = pool[Math.floor(Math.random() * pool.length)];
     this.spawnItem(defId, enemy.x + (Math.random() * 40 - 20), enemy.y + (Math.random() * 40 - 20));
+    // Schedule respawn (#18)
+    this.scheduleEnemyRespawn(enemy.enemyType);
+  }
+
+  private scheduleEnemyRespawn(type: string) {
+    const delay = type === "guardian" ? 20000 : 12000;
+    this.clock.setTimeout(() => {
+      if (this.state.gamePhase !== "playing" && this.state.gamePhase !== "extractWarn") return;
+      if (type === "guardian") {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 100 + Math.random() * 250;
+        const x = this.state.mapWidth / 2 + Math.cos(angle) * dist;
+        const y = this.state.mapHeight / 2 + Math.sin(angle) * dist;
+        this.spawnEnemy("guardian", x, y, 80);
+      } else {
+        const x = 200 + Math.random() * (this.state.mapWidth - 400);
+        const y = 200 + Math.random() * (this.state.mapHeight - 400);
+        this.spawnEnemy("stalker", x, y, 50);
+      }
+    }, delay);
   }
 
   private damagePlayer(sessionId: string, amount: number) {
