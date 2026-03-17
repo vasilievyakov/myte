@@ -76,7 +76,7 @@ export class LobbyScene extends Phaser.Scene {
       $.onChange(this.room.state, () => {
         if (this.transitioned) return;
         const state = this.room.state as any;
-        if (state.gamePhase === "playing" || state.gamePhase === "extractWarn") {
+        if (state.gamePhase === "countdown" || state.gamePhase === "playing" || state.gamePhase === "extractWarn") {
           this.transitioned = true;
           this.scene.start("GameScene", { room: this.room });
           return;
@@ -90,10 +90,14 @@ export class LobbyScene extends Phaser.Scene {
     }
   }
 
+  private lobbyDots: Phaser.GameObjects.Graphics[] = [];
+
   private updatePlayerList() {
-    // Clear old texts
+    // Clear old texts and dots
     for (const t of this.playerListTexts) t.destroy();
+    for (const d of this.lobbyDots) d.destroy();
     this.playerListTexts = [];
+    this.lobbyDots = [];
 
     if (!this.room?.state) return;
     const state = this.room.state as any;
@@ -101,29 +105,36 @@ export class LobbyScene extends Phaser.Scene {
     let y = 250;
 
     const playerColors = [0x9b59b6, 0x1abc9c, 0xf1c40f, 0xe74c3c];
+    const playerNames = ["Purple", "Teal", "Gold", "Red"];
     let idx = 0;
 
     state.players?.forEach((player: any, sid: string) => {
       const isLocal = sid === this.room.sessionId;
-      const name = isLocal ? "YOU" : sid.slice(0, 6);
-      const ready = player.isReady ? "READY" : "...";
+      const name = isLocal ? `Player ${idx + 1} (YOU)` : `Player ${idx + 1}`;
+      const ready = player.isReady ? "✓ READY" : "waiting...";
       const color = playerColors[idx % playerColors.length];
 
-      // Color dot
+      // Color circle
       const dot = this.add.graphics();
       dot.fillStyle(color, 1);
-      dot.fillCircle(w / 2 - 100, y, 8);
-      // We can't easily store graphics in text array, so just let it exist
+      dot.fillCircle(w / 2 - 120, y, 12);
+      this.lobbyDots.push(dot);
 
-      const t = this.add.text(w / 2 - 80, y, `${name}  ${ready}`, {
-        fontSize: "18px",
+      const t = this.add.text(w / 2 - 100, y, `${name}  ${ready}`, {
+        fontSize: "20px",
         color: player.isReady ? "#2ecc71" : "#888888",
         fontStyle: isLocal ? "bold" : "normal",
       }).setOrigin(0, 0.5);
       this.playerListTexts.push(t);
 
-      y += 40;
+      y += 50;
       idx++;
     });
+
+    // Player count
+    const countText = this.add.text(w / 2, 220, `${idx}/4 players`, {
+      fontSize: "14px", color: "#555577",
+    }).setOrigin(0.5);
+    this.playerListTexts.push(countText);
   }
 }

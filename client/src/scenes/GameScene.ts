@@ -96,6 +96,9 @@ export class GameScene extends Phaser.Scene {
   // Audio
   private audioCtx: AudioContext | null = null;
 
+  // Zone tracking
+  private wasInDangerZone = false;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -230,7 +233,10 @@ export class GameScene extends Phaser.Scene {
 
             if (player.hp < oldHp && oldHp - player.hp >= 1) {
               this.spawnFloatingText(s.prevX + 16, s.prevY - 20, `-${Math.round(oldHp - player.hp)}`, "#ff4444");
-              if (sid === this.localSessionId) this.playSfx("hit");
+              if (sid === this.localSessionId) {
+                this.playSfx("hit");
+                this.cameras.main.shake(150, 0.008);
+              }
             }
           }
         });
@@ -335,6 +341,32 @@ export class GameScene extends Phaser.Scene {
         });
       });
 
+      // Countdown handler (#11)
+      this.room.onMessage("countdown", (data: { seconds: number }) => {
+        this.initAudio();
+        const text = data.seconds > 0 ? `${data.seconds}` : "GO!";
+        const countText = this.add.text(this.scale.width / 2, this.scale.height / 2, text, {
+          fontSize: "80px", color: "#ffffff", fontStyle: "bold",
+          stroke: "#000000", strokeThickness: 6,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(200);
+        this.tweens.add({
+          targets: countText, alpha: 0, scaleX: 2, scaleY: 2,
+          duration: 800, ease: "Power2",
+          onComplete: () => countText.destroy(),
+        });
+        // Beep sound
+        if (this.audioCtx) {
+          const osc = this.audioCtx.createOscillator();
+          const gain = this.audioCtx.createGain();
+          osc.connect(gain); gain.connect(this.audioCtx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(data.seconds > 0 ? 440 : 880, this.audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.12, this.audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.15);
+          osc.start(); osc.stop(this.audioCtx.currentTime + 0.15);
+        }
+      });
+
       // Extract warning handler
       this.room.onMessage("extract_warn", () => {
         const flash = this.add.text(this.scale.width / 2, this.scale.height / 2 - 80,
@@ -407,9 +439,17 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Grace period flicker
-    const alpha = graceTimer > 0 ? (Math.sin(Date.now() * 0.015) > 0 ? 1 : 0.3) : 1;
-    gfx.setAlpha(alpha);
+    // Grace period: shield bubble + flicker (#15)
+    if (graceTimer > 0) {
+      gfx.setAlpha(0.9);
+      // Shield bubble
+      gfx.lineStyle(2, 0x44aaff, 0.4 + Math.sin(Date.now() * 0.01) * 0.3);
+      gfx.strokeCircle(cx, y + 16, 22);
+      gfx.fillStyle(0x44aaff, 0.08);
+      gfx.fillCircle(cx, y + 16, 22);
+    } else {
+      gfx.setAlpha(1);
+    }
 
     const legSwing = Math.sin(walkPhase) * 5;
     const bodyBob = Math.abs(Math.sin(walkPhase)) * 1.5;
@@ -876,6 +916,55 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private spawnRarePickupVFX() {
+    const w = this.scale.width;
+    const h = this.scale.height;
+    // Gold flash overlay
+    const flash = this.add.rectangle(w / 2, h / 2, w, h, 0xffd700, 0)
+      .setScrollFactor(0).setDepth(180);
+    this.tweens.add({
+      targets: flash, alpha: 0.2, yoyo: true, duration: 200, repeat: 1,
+      onComplete: () => flash.destroy(),
+    });
+    // "RARE!" floating text
+    const text = this.add.text(w / 2, h / 2 - 60, "★ RARE ITEM ★", {
+      fontSize: "36px", color: "#ffd700", fontStyle: "bold",
+      stroke: "#000000", strokeThickness: 5,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(181);
+    this.tweens.add({
+      targets: text, alpha: 0, y: text.y - 60, scaleX: 1.3, scaleY: 1.3,
+      duration: 1500, ease: "Power2",
+      onComplete: () => text.destroy(),
+    });
+    // Particles (gold sparkles)
+    const sparkles = this.add.graphics().setScrollFactor(0).setDepth(180);
+    const particles: { x: number; y: number; vx: number; vy: number; life: number }[] = [];
+    for (let i = 0; i < 20; i++) {
+      particles.push({
+        x: w / 2 + (Math.random() - 0.5) * 200,
+        y: h / 2 + (Math.random() - 0.5) * 100,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -1 - Math.random() * 3,
+        life: 1,
+      });
+    }
+    const timer = this.time.addEvent({
+      delay: 16, repeat: 60,
+      callback: () => {
+        sparkles.clear();
+        for (const p of particles) {
+          p.x += p.vx; p.y += p.vy; p.life -= 0.016;
+          if (p.life > 0) {
+            sparkles.fillStyle(0xffd700, p.life);
+            sparkles.fillCircle(p.x, p.y, 3);
+          }
+        }
+      },
+    });
+    this.time.delayedCall(1100, () => { sparkles.destroy(); timer.destroy(); });
+    this.playSfx("extract"); // celebratory sound
+  }
+
   private spawnAttackVFX(x: number, y: number) {
     const gfx = this.add.graphics().setDepth(50);
     gfx.lineStyle(3, 0xffffff, 0.8);
@@ -930,6 +1019,11 @@ export class GameScene extends Phaser.Scene {
       text.setText(item.name).setColor(this.rarityColor(item.rarity));
       const rarColor = item.rarity === "rare" ? 0xffd700 : item.rarity === "uncommon" ? 0x00ccff : 0x444466;
       this.hudSlotBgs[slotIndex]?.setStrokeStyle(1.5, rarColor);
+
+      // Rare item pickup celebration (#13)
+      if (item.rarity === "rare") {
+        this.spawnRarePickupVFX();
+      }
 
       // Mini icon in HUD
       const icon = this.hudSlotIcons[slotIndex];
@@ -1360,6 +1454,7 @@ export class GameScene extends Phaser.Scene {
 
     this.updateMinimap();
     this.updateProximityHints();
+    this.checkDangerZone();
   }
 
   private updateMinimap() {
@@ -1428,6 +1523,32 @@ export class GameScene extends Phaser.Scene {
         this.minimapGfx.strokeCircle(mmX + player.x * scaleX, mmY + player.y * scaleY, 5);
       }
     });
+  }
+
+  private checkDangerZone() {
+    const local = this.playerSprites.get(this.localSessionId);
+    if (!local || !this.room?.state) return;
+    const state = this.room.state as any;
+    const px = local.prevX + 16;
+    const py = local.prevY + 16;
+    const cx = (state.mapWidth || 1600) / 2;
+    const cy = (state.mapHeight || 1200) / 2;
+    const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2);
+    const inDanger = dist < 400;
+
+    if (inDanger && !this.wasInDangerZone) {
+      const warn = this.add.text(this.scale.width / 2, this.scale.height / 2 - 100,
+        "⚠ ENTERING DANGER ZONE ⚠", {
+          fontSize: "24px", color: "#ff4400", fontStyle: "bold",
+          stroke: "#000000", strokeThickness: 4,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(150);
+      this.tweens.add({
+        targets: warn, alpha: 0, y: warn.y - 40,
+        duration: 2500, onComplete: () => warn.destroy(),
+      });
+      this.playSfx("hit");
+    }
+    this.wasInDangerZone = inDanger;
   }
 
   private updateProximityHints() {

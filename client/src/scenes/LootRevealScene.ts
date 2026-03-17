@@ -4,6 +4,8 @@ interface RevealResult {
   sessionId: string;
   color: number;
   items: { name: string; rarity: string; type: string }[];
+  kills: number;
+  score: number;
 }
 
 export class LootRevealScene extends Phaser.Scene {
@@ -27,7 +29,7 @@ export class LootRevealScene extends Phaser.Scene {
     this.add.rectangle(w / 2, h / 2, w, h, 0x050510);
 
     // Title fade in
-    const title = this.add.text(w / 2, 60, "SESSION COMPLETE", {
+    const title = this.add.text(w / 2, 50, "SESSION COMPLETE", {
       fontSize: "36px", color: "#ffd700", fontStyle: "bold",
       stroke: "#000000", strokeThickness: 4,
     }).setOrigin(0.5).setAlpha(0);
@@ -36,8 +38,8 @@ export class LootRevealScene extends Phaser.Scene {
 
     // Reveal each player's results with staggered timing
     let baseDelay = 1000;
-    const startY = 140;
-    const rowHeight = 100;
+    const startY = 130;
+    const rowHeight = 110;
 
     for (let i = 0; i < this.results.length; i++) {
       const result = this.results[i];
@@ -57,17 +59,32 @@ export class LootRevealScene extends Phaser.Scene {
         ease: "Power2",
       });
 
-      // Player name
-      const name = isLocal ? ">> YOU <<" : result.sessionId.slice(0, 6);
-      const nameText = this.add.text(90, y + 20, name, {
+      // Rank badge
+      const rank = i + 1;
+      const rankColors = ["#ffd700", "#c0c0c0", "#cd7f32", "#888888"];
+      const rankText = this.add.text(90, y + 10, `#${rank}`, {
+        fontSize: "16px", color: rankColors[i] || "#888888", fontStyle: "bold",
+        stroke: "#000000", strokeThickness: 2,
+      }).setOrigin(0, 0.5).setAlpha(0);
+
+      this.tweens.add({ targets: rankText, alpha: 1, duration: 400, delay: baseDelay + 100 });
+
+      // Player name + score
+      const name = isLocal ? ">> YOU <<" : `Player ${i + 1}`;
+      const nameText = this.add.text(120, y + 10, name, {
         fontSize: "20px",
         color: isLocal ? "#ffff00" : "#ffffff",
         fontStyle: "bold",
         stroke: "#000000", strokeThickness: 2,
       }).setOrigin(0, 0.5).setAlpha(0);
 
+      // Stats line
+      const statsText = this.add.text(120, y + 32, `Score: ${result.score}  •  Kills: ${result.kills}`, {
+        fontSize: "12px", color: "#888899",
+      }).setAlpha(0);
+
       this.tweens.add({
-        targets: nameText,
+        targets: [nameText, statsText],
         alpha: 1, duration: 400, delay: baseDelay + 200,
       });
 

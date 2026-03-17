@@ -80,7 +80,7 @@ export class GameRoom extends Room<{ state: GameState }> {
         if (!p.isReady) allReady = false;
       });
       if (allReady && this.state.players.size >= 1) {
-        this.startGame();
+        this.startCountdown();
       }
     });
 
@@ -180,7 +180,10 @@ export class GameRoom extends Room<{ state: GameState }> {
         const dy = enemy.y - py;
         if (Math.sqrt(dx * dx + dy * dy) < range) {
           damageEnemy(enemy, baseDmg);
-          if (enemy.hp <= 0) player.kills++;
+          if (enemy.hp <= 0) {
+            player.kills++;
+            this.dropEnemyLoot(enemy);
+          }
         }
       });
     });
@@ -439,6 +442,21 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   // --- Private methods ---
 
+  private startCountdown() {
+    this.state.gamePhase = "countdown";
+    this.broadcast("countdown", { seconds: 3 });
+    let count = 3;
+    const interval = this.clock.setInterval(() => {
+      count--;
+      if (count > 0) {
+        this.broadcast("countdown", { seconds: count });
+      } else {
+        interval.clear();
+        this.startGame();
+      }
+    }, 1000);
+  }
+
   private startGame() {
     console.log("[GAME] Starting game!");
     this.state.gamePhase = "playing";
@@ -446,6 +464,13 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.spawnInitialLoot();
     this.spawnInitialEnemies();
     this.scheduleDisaster();
+  }
+
+  private dropEnemyLoot(enemy: Enemy) {
+    // Guardians drop better loot
+    const pool = enemy.enemyType === "guardian" ? DANGER_ZONE_POOL : MEDIUM_ZONE_POOL;
+    const defId = pool[Math.floor(Math.random() * pool.length)];
+    this.spawnItem(defId, enemy.x + (Math.random() * 40 - 20), enemy.y + (Math.random() * 40 - 20));
   }
 
   private damagePlayer(sessionId: string, amount: number) {
@@ -694,8 +719,10 @@ export class GameRoom extends Room<{ state: GameState }> {
           if (item) items.push({ name: item.name, rarity: item.rarity, type: item.itemType });
         }
       }
-      results.push({ sessionId, color: player.color, items });
+      const score = items.reduce((s, i) => s + (i.rarity === "rare" ? 30 : i.rarity === "uncommon" ? 15 : 5), 0) + player.kills * 10;
+      results.push({ sessionId, color: player.color, items, kills: player.kills, score });
     });
+    results.sort((a, b) => b.score - a.score);
     return results;
   }
 
