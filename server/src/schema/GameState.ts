@@ -45,6 +45,8 @@ export class Player extends Schema {
   @type("number")  graceTimer: number = 0;
   @type("number")  velX: number = 0;
   @type("number")  velY: number = 0;
+  @type("number")  attackCooldown: number = 0;
+  @type("number")  attackSeq: number = 0;
 }
 
 export class Enemy extends Schema {

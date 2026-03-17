@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { Client, Room, Callbacks } from "@colyseus/sdk";
 
-const LERP_FACTOR = 0.2;
+const LERP_FACTOR = 0.35;
 const PLAYER_SIZE = 32;
 const GRID_SIZE = 64;
 const PICKUP_RADIUS = 64;
@@ -73,6 +73,8 @@ export class GameScene extends Phaser.Scene {
   private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
   private pickupKey!: Phaser.Input.Keyboard.Key;
   private extractKey!: Phaser.Input.Keyboard.Key;
+  private attackKey!: Phaser.Input.Keyboard.Key;
+  private useKey!: Phaser.Input.Keyboard.Key;
   private lastDirection = { dx: 0, dy: 0 };
   private localSessionId = "";
 
@@ -85,6 +87,14 @@ export class GameScene extends Phaser.Scene {
   private extractHint!: Phaser.GameObjects.Text;
   private resultsShown = false;
   private deathOverlayText: Phaser.GameObjects.Text | null = null;
+
+  // Minimap
+  private minimapGfx!: Phaser.GameObjects.Graphics;
+  private minimapBg!: Phaser.GameObjects.Rectangle;
+  private minimapBorder!: Phaser.GameObjects.Rectangle;
+
+  // Audio
+  private audioCtx: AudioContext | null = null;
 
   constructor() {
     super({ key: "GameScene" });
@@ -114,6 +124,8 @@ export class GameScene extends Phaser.Scene {
     };
     this.pickupKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.extractKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.attackKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+    this.useKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
 
     this.createHUD();
     this.connectToServer();
@@ -124,44 +136,63 @@ export class GameScene extends Phaser.Scene {
   private createHUD() {
     const w = this.scale.width;
     const h = this.scale.height;
-    const slotWidth = 150;
-    const slotHeight = 54;
+    const slotWidth = 180;
+    const slotHeight = 64;
     const slotLabels = ["WEAPON", "ARMOR", "UTILITY"];
     const startX = w / 2 - (slotWidth * 1.5 + 10);
 
     for (let i = 0; i < 3; i++) {
       const x = startX + i * (slotWidth + 10);
-      const bg = this.add.rectangle(x + slotWidth / 2, h - 42, slotWidth, slotHeight, 0x111122, 0.9)
-        .setScrollFactor(0).setDepth(100).setStrokeStyle(1, 0x333355);
+      const bg = this.add.rectangle(x + slotWidth / 2, h - 46, slotWidth, slotHeight, 0x111122, 0.92)
+        .setScrollFactor(0).setDepth(100).setStrokeStyle(2, 0x333355);
       this.hudSlotBgs.push(bg);
 
-      this.add.text(x + 30, h - 62, slotLabels[i], {
-        fontSize: "9px", color: "#555577",
+      this.add.text(x + 34, h - 70, slotLabels[i], {
+        fontSize: "11px", color: "#666688", fontFamily: "monospace",
       }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
 
       const icon = this.add.graphics().setScrollFactor(0).setDepth(101);
       this.hudSlotIcons.push(icon);
 
-      const content = this.add.text(x + 30, h - 38, "Empty", {
-        fontSize: "13px", color: "#555555",
+      const content = this.add.text(x + 34, h - 42, "Empty", {
+        fontSize: "16px", color: "#555555", fontStyle: "bold",
       }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(101);
       this.hudSlots.push(content);
     }
 
     this.timerText = this.add.text(w / 2, 20, "5:00", {
-      fontSize: "28px", color: "#ffffff", fontStyle: "bold",
-      stroke: "#000000", strokeThickness: 3,
+      fontSize: "32px", color: "#ffffff", fontStyle: "bold",
+      stroke: "#000000", strokeThickness: 4,
     }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
 
-    this.pickupHint = this.add.text(w / 2, h - 105, "[E] Pick up", {
-      fontSize: "16px", color: "#ffff00",
-      stroke: "#000000", strokeThickness: 2,
+    this.pickupHint = this.add.text(w / 2, h - 115, "[E] Pick up", {
+      fontSize: "18px", color: "#ffff00", fontStyle: "bold",
+      stroke: "#000000", strokeThickness: 3,
     }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100).setVisible(false);
 
-    this.extractHint = this.add.text(w / 2, h - 125, "[SPACE] Extract", {
-      fontSize: "16px", color: "#00ff66",
-      stroke: "#000000", strokeThickness: 2,
+    this.extractHint = this.add.text(w / 2, h - 140, "[SPACE] Extract", {
+      fontSize: "18px", color: "#00ff66", fontStyle: "bold",
+      stroke: "#000000", strokeThickness: 3,
     }).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100).setVisible(false);
+
+    // Controls hint (bottom-left)
+    this.add.text(12, h - 24, "[F] Attack   [Q] Use Utility   [E] Pick up   [SPACE] Extract", {
+      fontSize: "12px", color: "#445566", fontFamily: "monospace",
+    }).setScrollFactor(0).setDepth(100);
+
+    // Minimap (top-left corner)
+    const mmSize = 140;
+    const mmX = 12;
+    const mmY = 12;
+    this.minimapBg = this.add.rectangle(mmX + mmSize / 2, mmY + mmSize / 2, mmSize, mmSize, 0x0a0a1a, 0.85)
+      .setScrollFactor(0).setDepth(100);
+    this.minimapBorder = this.add.rectangle(mmX + mmSize / 2, mmY + mmSize / 2, mmSize, mmSize)
+      .setScrollFactor(0).setDepth(100).setFillStyle(0x000000, 0).setStrokeStyle(2, 0x333355);
+    this.minimapGfx = this.add.graphics().setScrollFactor(0).setDepth(101);
+
+    this.add.text(mmX + mmSize / 2, mmY + mmSize + 4, "MAP", {
+      fontSize: "10px", color: "#444466", fontFamily: "monospace",
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(101);
   }
 
   // ========== CONNECTION ==========
@@ -199,6 +230,7 @@ export class GameScene extends Phaser.Scene {
 
             if (player.hp < oldHp && oldHp - player.hp >= 1) {
               this.spawnFloatingText(s.prevX + 16, s.prevY - 20, `-${Math.round(oldHp - player.hp)}`, "#ff4444");
+              if (sid === this.localSessionId) this.playSfx("hit");
             }
           }
         });
@@ -207,8 +239,12 @@ export class GameScene extends Phaser.Scene {
           $.listen(player, "armorId", (val: string) => this.updateHUDSlot(1, val));
           $.listen(player, "utilityId", (val: string) => this.updateHUDSlot(2, val));
           $.listen(player, "isDead", (val: boolean) => {
-            if (val) this.showDeathOverlay();
+            if (val) { this.showDeathOverlay(); this.playSfx("death"); }
             else this.hideDeathOverlay();
+          });
+          $.listen(player, "attackSeq", () => {
+            const s = this.playerSprites.get(this.localSessionId);
+            if (s) this.spawnAttackVFX(s.prevX + 16, s.prevY + 16);
           });
         }
       });
@@ -432,9 +468,9 @@ export class GameScene extends Phaser.Scene {
     const gfx = this.add.graphics().setDepth(5);
     this.drawItemIcon(gfx, item.x, item.y, item);
 
-    const label = this.add.text(item.x, item.y - 20, item.name, {
-      fontSize: "10px", color: this.rarityColor(item.rarity),
-      stroke: "#000000", strokeThickness: 2,
+    const label = this.add.text(item.x, item.y - 22, item.name, {
+      fontSize: "14px", color: this.rarityColor(item.rarity), fontStyle: "bold",
+      stroke: "#000000", strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(6);
 
     this.itemSprites.set(id, { gfx, label, bobPhase: Math.random() * Math.PI * 2, baseY: item.y });
@@ -840,6 +876,18 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private spawnAttackVFX(x: number, y: number) {
+    const gfx = this.add.graphics().setDepth(50);
+    gfx.lineStyle(3, 0xffffff, 0.8);
+    gfx.beginPath();
+    gfx.arc(x, y, 30, -Math.PI * 0.3, Math.PI * 0.3, false);
+    gfx.strokePath();
+    this.tweens.add({
+      targets: gfx, alpha: 0, duration: 200,
+      onComplete: () => gfx.destroy(),
+    });
+  }
+
   // ========== EXTRACTION ZONE ==========
 
   private drawExtractionZone(x: number, y: number, radius: number) {
@@ -887,13 +935,13 @@ export class GameScene extends Phaser.Scene {
       const icon = this.hudSlotIcons[slotIndex];
       if (icon) {
         const w = this.scale.width;
-        const slotWidth = 150;
+        const slotWidth = 180;
         const startX = w / 2 - (slotWidth * 1.5 + 10);
-        const sx = startX + slotIndex * (slotWidth + 10) + 14;
-        const sy = this.scale.height - 42;
+        const sx = startX + slotIndex * (slotWidth + 10) + 16;
+        const sy = this.scale.height - 46;
         icon.clear();
-        icon.setScale(0.7);
-        this.drawItemIcon(icon, sx / 0.7, sy / 0.7, item);
+        icon.setScale(0.8);
+        this.drawItemIcon(icon, sx / 0.8, sy / 0.8, item);
       }
     }
   }
@@ -1043,6 +1091,70 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ========== AUDIO ==========
+
+  private initAudio() {
+    if (this.audioCtx) return;
+    try {
+      this.audioCtx = new AudioContext();
+    } catch { /* no audio support */ }
+  }
+
+  private playSfx(type: "pickup" | "hit" | "attack" | "extract" | "death") {
+    if (!this.audioCtx) this.initAudio();
+    if (!this.audioCtx) return;
+    const ctx = this.audioCtx;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    switch (type) {
+      case "pickup":
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.linearRampToValueAtTime(900, now + 0.1);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.15);
+        osc.start(now); osc.stop(now + 0.15);
+        break;
+      case "hit":
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.2);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+        break;
+      case "attack":
+        osc.type = "square";
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.linearRampToValueAtTime(150, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.12);
+        osc.start(now); osc.stop(now + 0.12);
+        break;
+      case "extract":
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(800, now + 0.15);
+        osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+        break;
+      case "death":
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.5);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+        break;
+    }
+  }
+
   // ========== ARENA ==========
 
   private drawArena(width: number, height: number) {
@@ -1113,8 +1225,26 @@ export class GameScene extends Phaser.Scene {
       this.room.send("move", { dx, dy });
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.pickupKey)) this.room.send("pickup");
-    if (Phaser.Input.Keyboard.JustDown(this.extractKey)) this.room.send("extract");
+    if (Phaser.Input.Keyboard.JustDown(this.pickupKey)) {
+      this.initAudio();
+      this.room.send("pickup");
+      this.playSfx("pickup");
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.extractKey)) {
+      this.initAudio();
+      this.room.send("extract");
+      this.playSfx("extract");
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+      this.initAudio();
+      this.room.send("attack");
+      this.playSfx("attack");
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.useKey)) {
+      this.initAudio();
+      this.room.send("use_utility");
+      this.playSfx("pickup");
+    }
 
     // Animate players
     this.playerSprites.forEach((s) => {
@@ -1228,7 +1358,76 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
+    this.updateMinimap();
     this.updateProximityHints();
+  }
+
+  private updateMinimap() {
+    if (!this.minimapGfx || !this.room?.state) return;
+    this.minimapGfx.clear();
+
+    const mmSize = 140;
+    const mmX = 12;
+    const mmY = 12;
+    const state = this.room.state as any;
+    const mapW = state.mapWidth || 1600;
+    const mapH = state.mapHeight || 1200;
+    const scaleX = mmSize / mapW;
+    const scaleY = mmSize / mapH;
+
+    // Danger zone (center circle)
+    this.minimapGfx.fillStyle(0xff2200, 0.15);
+    this.minimapGfx.fillCircle(mmX + mapW / 2 * scaleX, mmY + mapH / 2 * scaleY, 400 * scaleX);
+
+    // Extraction zone
+    this.minimapGfx.fillStyle(0x00ff66, 0.3);
+    this.minimapGfx.fillCircle(
+      mmX + state.extractX * scaleX,
+      mmY + state.extractY * scaleY,
+      Math.max(3, state.extractRadius * scaleX)
+    );
+
+    // Items on ground (small dots)
+    state.items?.forEach((item: any) => {
+      if (!item.onGround) return;
+      const rarityColor = item.rarity === "rare" ? 0xffd700 : item.rarity === "uncommon" ? 0x00ccff : 0x666666;
+      this.minimapGfx.fillStyle(rarityColor, 0.6);
+      this.minimapGfx.fillCircle(mmX + item.x * scaleX, mmY + item.y * scaleY, 1.5);
+    });
+
+    // Enemies (red dots)
+    state.enemies?.forEach((enemy: any) => {
+      if (enemy.isDead) return;
+      this.minimapGfx.fillStyle(0xff4400, 0.8);
+      this.minimapGfx.fillCircle(mmX + enemy.x * scaleX, mmY + enemy.y * scaleY, 2);
+    });
+
+    // Disasters (colored circles)
+    state.disasters?.forEach((disaster: any) => {
+      const dColors: Record<string, number> = {
+        blizzard: 0x0088ff, meteor: 0xff6600, lightning: 0xffff00, ice: 0x88ddff,
+      };
+      const c = dColors[disaster.disasterType] || 0x0088ff;
+      this.minimapGfx.lineStyle(1, c, 0.5);
+      this.minimapGfx.strokeCircle(
+        mmX + disaster.x * scaleX,
+        mmY + disaster.y * scaleY,
+        disaster.radius * scaleX
+      );
+    });
+
+    // Other players (colored dots)
+    state.players?.forEach((player: any, sid: unknown) => {
+      const isLocal = (sid as string) === this.localSessionId;
+      if (player.isDead) return;
+      this.minimapGfx.fillStyle(player.color, 1);
+      const dotSize = isLocal ? 4 : 3;
+      this.minimapGfx.fillCircle(mmX + player.x * scaleX, mmY + player.y * scaleY, dotSize);
+      if (isLocal) {
+        this.minimapGfx.lineStyle(1, 0xffffff, 0.6);
+        this.minimapGfx.strokeCircle(mmX + player.x * scaleX, mmY + player.y * scaleY, 5);
+      }
+    });
   }
 
   private updateProximityHints() {

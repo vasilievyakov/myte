@@ -45,7 +45,7 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   onCreate() {
     this.setState(new GameState());
-    this.setPatchRate(50);
+    this.setPatchRate(33);
 
     // Game starts in "lobby" phase — loot/enemies/disasters spawn on startGame()
 
@@ -159,13 +159,114 @@ export class GameRoom extends Room<{ state: GameState }> {
       }
     });
 
+    // Attack handler — player swings weapon at nearby enemies
+    this.onMessage("attack", (client: Client) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || player.extracted || player.isDead || player.attackCooldown > 0) return;
+
+      const weaponId = player.weaponId;
+      const weaponDef = weaponId ? this.state.items.get(weaponId) : null;
+      const baseDmg = weaponDef ? this.getWeaponDamage(weaponDef.defId) : 5; // fist = 5
+      const range = weaponDef ? 60 : 40;
+      player.attackCooldown = weaponDef ? 0.5 : 0.8; // cooldown in seconds
+      player.attackSeq++;
+
+      const px = player.x + PLAYER_SIZE / 2;
+      const py = player.y + PLAYER_SIZE / 2;
+
+      this.state.enemies.forEach((enemy: Enemy) => {
+        if (enemy.isDead) return;
+        const dx = enemy.x - px;
+        const dy = enemy.y - py;
+        if (Math.sqrt(dx * dx + dy * dy) < range) {
+          damageEnemy(enemy, baseDmg);
+          if (enemy.hp <= 0) player.kills++;
+        }
+      });
+    });
+
+    // Use utility handler
+    this.onMessage("use_utility", (client: Client) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || player.extracted || player.isDead) return;
+      const utilId = player.utilityId;
+      if (!utilId) return;
+      const item = this.state.items.get(utilId);
+      if (!item) return;
+
+      let consumed = false;
+      switch (item.defId) {
+        case "speed_scroll":
+        case "spark_scroll":
+        case "blizzard_scroll":
+          player.speedMultiplier = 2.0;
+          // Reset after 5 seconds
+          this.clock.setTimeout(() => { player.speedMultiplier = 1.0; }, 5000);
+          consumed = true;
+          break;
+        case "smoke_bomb":
+          // Grace period (invulnerability) for 3 seconds
+          player.graceTimer = 3;
+          consumed = true;
+          break;
+        case "frost_ward":
+          // Full heal
+          player.hp = player.maxHp;
+          consumed = true;
+          break;
+        case "torch":
+        case "ember_flask":
+          // Damage nearby enemies
+          this.state.enemies.forEach((enemy: Enemy) => {
+            if (enemy.isDead) return;
+            const dx = enemy.x - (player.x + PLAYER_SIZE / 2);
+            const dy = enemy.y - (player.y + PLAYER_SIZE / 2);
+            if (Math.sqrt(dx * dx + dy * dy) < 100) {
+              damageEnemy(enemy, 30);
+            }
+          });
+          consumed = true;
+          break;
+        case "antidote":
+        case "cryo_flask":
+        case "volt_potion":
+          player.hp = Math.min(player.hp + 30, player.maxHp);
+          consumed = true;
+          break;
+        case "grapple_hook":
+          // Dash forward in last move direction
+          const input = this.playerInputs.get(client.sessionId);
+          if (input && (input.dx !== 0 || input.dy !== 0)) {
+            player.x += input.dx * 200;
+            player.y += input.dy * 200;
+            player.x = Math.max(0, Math.min(this.state.mapWidth - PLAYER_SIZE, player.x));
+            player.y = Math.max(0, Math.min(this.state.mapHeight - PLAYER_SIZE, player.y));
+          }
+          consumed = true;
+          break;
+        case "compass":
+          // Not consumed — passive (no active use)
+          break;
+        default:
+          // Generic utility: small heal
+          player.hp = Math.min(player.hp + 15, player.maxHp);
+          consumed = true;
+          break;
+      }
+
+      if (consumed) {
+        player.utilityId = "";
+        this.state.items.delete(utilId);
+      }
+    });
+
     // --- Simulation loop ---
 
     this.setSimulationInterval((deltaTime) => {
       if (this.state.gamePhase !== "playing" && this.state.gamePhase !== "extractWarn") return;
       const dt = deltaTime / 1000;
 
-      // Death/respawn/grace ticking
+      // Death/respawn/grace/attack cooldown ticking
       this.state.players.forEach((player: Player, sessionId: string) => {
         if (player.isDead) {
           player.respawnTimer -= dt;
@@ -177,6 +278,10 @@ export class GameRoom extends Room<{ state: GameState }> {
         if (player.graceTimer > 0) {
           player.graceTimer -= dt;
           if (player.graceTimer < 0) player.graceTimer = 0;
+        }
+        if (player.attackCooldown > 0) {
+          player.attackCooldown -= dt;
+          if (player.attackCooldown < 0) player.attackCooldown = 0;
         }
       });
 
@@ -592,5 +697,15 @@ export class GameRoom extends Room<{ state: GameState }> {
       results.push({ sessionId, color: player.color, items });
     });
     return results;
+  }
+
+  private getWeaponDamage(defId: string): number {
+    const dmgMap: Record<string, number> = {
+      iron_sword: 12, fire_blade: 18, frost_edge: 22, bone_club: 10,
+      rusty_bow: 14, staff: 16, dagger: 10, mace: 14, crossbow: 18,
+      frozen_sword: 16, blizzard_fang: 24, storm_blade: 26,
+      molten_blade: 28, magma_club: 16, crystal_saber: 26, ice_bow: 18,
+    };
+    return dmgMap[defId] ?? 10;
   }
 }
